@@ -1,0 +1,137 @@
+formatter: "markdown table"
+
+version: ""
+
+header-from: main.tf
+footer-from: ""
+
+recursive:
+  enabled: false
+  path: modules
+
+sections:
+  hide: []
+  show: []
+
+content: |-
+  # Terraform Hetzner Cloud RKE2 Infrastructure Module
+
+  This Terraform module provisions the infrastructure foundation for an RKE2 Kubernetes cluster on Hetzner Cloud with AWS RDS as the external datastore. The module creates the underlying infrastructure components needed for a highly available RKE2 cluster, with Kubernetes applications deployed separately.
+
+  ## Features
+
+  - **High Availability**: Multiple control plane nodes with external datastore (AWS RDS PostgreSQL)
+  - **Hetzner Cloud Integration**: Native support for Hetzner Cloud services (Load Balancer, Networking, etc.)
+  - **Security**: Firewall rules, private networking, and secure access controls
+  - **Infrastructure Focus**: Provisions servers, networking, and datastore - applications deployed separately
+  - **Cloud-Init**: Automated node provisioning and RKE2 installation
+
+  ## Architecture
+
+  The module creates the infrastructure foundation:
+  - Hetzner Cloud private network and subnet
+  - Control plane nodes (configurable count) with RKE2 server
+  - Worker nodes (configurable count) with RKE2 agent
+  - Load balancer for Kubernetes API server
+  - AWS RDS PostgreSQL instance as external datastore
+  - Firewall rules for secure access
+  - **Note**: Kubernetes applications (cert-manager, external-dns, Rancher) are deployed separately
+
+  ## Usage
+
+  ```hcl
+  module "rke2_infrastructure" {
+    source = "your-org/rke2/hcloud"
+    version = "~> 1.0"
+
+    # Hetzner Cloud Configuration
+    hcloud_token = var.hcloud_token
+    cluster_name = "my-cluster"
+    
+    # Server Configuration
+    server_type     = "cx32"
+    server_location = "nbg1"
+    
+    # Network Configuration
+    network_cidr = "10.0.0.0/16"
+    subnet_cidr  = "10.0.1.0/24"
+    
+    # RKE2 Configuration
+    rke2_token = var.rke2_token
+    
+    # AWS RDS Configuration
+    aws_region                   = "eu-central-1"
+    external_datastore_url = var.datastore_url
+    db_username           = "postgres"
+    allowed_cidr          = ["10.0.0.0/16"]
+    allocated_storage_gb  = 20
+    engine_version        = "17.6"
+  }
+  ```
+
+  ## Examples
+
+  - [Basic Usage](./examples/basic/) - Simple RKE2 infrastructure setup
+  
+  ## Requirements
+
+  {{ .Requirements }}
+
+  ## Providers
+
+  {{ .Providers }}
+
+  ## Modules
+
+  {{ .Modules }}
+
+  ## Resources
+
+  {{ .Resources }}
+
+  ## Inputs
+
+  {{ .Inputs }}
+
+  ## Outputs
+
+  {{ .Outputs }}
+
+  ## Contributing
+
+  Please read the contribution guidelines before submitting pull requests.
+
+  ## License
+
+  This module is licensed under the MIT License.
+
+output:
+  file: "README.md"
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+output-values:
+  enabled: false
+  from: ""
+
+sort:
+  enabled: true
+  by: name
+
+settings:
+  anchor: true
+  color: true
+  default: true
+  description: false
+  escape: true
+  hide-empty: false
+  html: true
+  indent: 2
+  lockfile: true
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true

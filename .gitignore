@@ -1,0 +1,96 @@
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude all .tfvars files, which are likely to contain sensitive data
+*.tfvars
+*.tfvars.json
+
+# Ignore override files as they are usually used to override resources locally and so
+# are not checked in
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Include override files you do wish to add to version control using negated pattern
+# !example_override.tf
+
+# Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
+# example: *tfplan*
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# Ignore Mac .DS_Store files
+.DS_Store
+
+# Ignore vim temporary files
+*.swp
+*.swo
+
+# Ignore emacs temporary files
+*~
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore JetBrains IDE settings
+.idea/
+
+# Ignore temporary files
+*.tmp
+*.temp
+
+# Ignore log files
+*.log
+
+# Ignore kubeconfig files
+kubeconfig*
+*.kubeconfig
+config
+
+# Ignore SSH keys
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Ignore environment files
+.env
+.env.local
+.env.*.local
+
+# Ignore terraform lock file (uncomment if you want to ignore it)
+# .terraform.lock.hcl
+
+# Ignore backup files
+*.backup
+*.bak
+
+# Ignore Windows thumbnail files
+Thumbs.db
+ehthumbs.db
+
+# Ignore Linux trash folder
+.Trash-*
+
+# Ignore terraform plan files
+*.tfplan
+plan.out
+
+# Ignore terraform-docs generated files (if auto-generated)
+# docs/
+
+# Ignore test files and directories
+test/
+tests/
+.test/

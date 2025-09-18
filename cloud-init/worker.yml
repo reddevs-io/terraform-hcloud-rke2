@@ -1,0 +1,38 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - wget
+  - unzip
+
+runcmd:
+  - mkdir -p /etc/rancher/rke2/
+  - curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" sh -
+  # Wait for metadata service to be available and fetch instance ID
+  - |
+    while ! curl -s http://169.254.169.254/hetzner/v1/metadata/instance-id > /dev/null; do
+      echo "Waiting for metadata service..."
+      sleep 5
+    done
+    INSTANCE_ID=$(curl -s http://169.254.169.254/hetzner/v1/metadata/instance-id)
+    echo "Instance ID: $INSTANCE_ID"
+    
+    cat > /etc/rancher/rke2/config.yaml << EOF
+    server: https://${lb_private_ip}:9345
+    token: ${cluster_token}
+    node-name: ${node_name}
+    node-ip: ${node_private_ip}
+    cloud-provider-name: external
+    kubelet-arg:
+      - "cloud-provider=external"
+      - "provider-id=hcloud://$INSTANCE_ID"
+      - "node-ip=${node_private_ip}"
+    EOF
+    
+    chmod 600 /etc/rancher/rke2/config.yaml
+    echo "Config file created with Instance ID: $INSTANCE_ID"
+    cat /etc/rancher/rke2/config.yaml
+  - systemctl enable rke2-agent.service
+  - systemctl start rke2-agent.service

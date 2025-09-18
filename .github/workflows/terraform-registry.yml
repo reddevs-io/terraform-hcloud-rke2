@@ -1,0 +1,176 @@
+name: Terraform Registry Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run validation only (no release)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  validate:
+    name: Validate Terraform Module
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ~1.2
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        
+      - name: Terraform Init
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Setup tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          soft_fail: true
+          format: sarif
+          additional_args: --out tfsec-results.sarif
+
+      - name: Upload tfsec results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: tfsec-results.sarif
+
+      - name: Run Checkov
+        id: checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: terraform
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+          soft_fail: true
+
+      - name: Upload Checkov results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif
+
+      - name: Setup terraform-docs
+        uses: terraform-docs/gh-actions@v1.0.0
+        with:
+          working-dir: .
+          output-file: README.md
+          output-method: inject
+          git-push: false
+          fail-on-diff: true
+
+      - name: Validate examples
+        run: |
+          for example in examples/*/; do
+            if [ -d "$example" ]; then
+              echo "Validating example: $example"
+              cd "$example"
+              terraform init -backend=false
+              terraform validate
+              cd - > /dev/null
+            fi
+          done
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [validate, security-scan]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && github.event.inputs.dry_run != 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          CURRENT_TAG=${GITHUB_REF#refs/tags/}
+          
+          echo "## Changes in $CURRENT_TAG" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "### Commits since $PREVIOUS_TAG:" >> CHANGELOG.md
+            git log --pretty=format:"- %s (%h)" $PREVIOUS_TAG..HEAD >> CHANGELOG.md
+          else
+            echo "### All commits:" >> CHANGELOG.md
+            git log --pretty=format:"- %s (%h)" >> CHANGELOG.md
+          fi
+          
+          echo "" >> CHANGELOG.md
+          echo "### Module Information" >> CHANGELOG.md
+          echo "- **Terraform Version**: >= 1.2.0" >> CHANGELOG.md
+          echo "- **Providers**: AWS, Hetzner Cloud, Kubernetes, Helm" >> CHANGELOG.md
+          echo "- **Purpose**: RKE2 Kubernetes cluster on Hetzner Cloud with AWS RDS datastore" >> CHANGELOG.md
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+
+  notify:
+    name: Notify on Success
+    runs-on: ubuntu-latest
+    needs: [validate, security-scan, release]
+    if: always() && (needs.validate.result == 'success' && needs.security-scan.result == 'success')
+    
+    steps:
+      - name: Success notification
+        run: |
+          if [ "${{ needs.release.result }}" == "success" ]; then
+            echo "✅ Module validation passed and release created successfully!"
+            echo "🚀 The Terraform Registry will automatically detect and publish this release."
+            echo "📦 Module will be available at: https://registry.terraform.io/modules/${{ github.repository }}"
+          else
+            echo "✅ Module validation passed!"
+            echo "ℹ️  No release was created (dry run or validation only)."
+          fi

@@ -1,0 +1,70 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - wget
+  - unzip
+
+runcmd:
+  - mkdir -p /etc/rancher/rke2/
+  - mkdir -p /var/lib/rancher/rke2/server/manifests/
+  - curl -sfL https://get.rke2.io | sh -
+  # Wait for metadata service to be available and fetch instance ID
+  - |
+    while ! curl -s http://169.254.169.254/hetzner/v1/metadata/instance-id > /dev/null; do
+      echo "Waiting for metadata service..."
+      sleep 5
+    done
+    INSTANCE_ID=$(curl -s http://169.254.169.254/hetzner/v1/metadata/instance-id)
+    echo "Instance ID: $INSTANCE_ID"
+    
+    cat > /etc/rancher/rke2/config.yaml << EOF
+    %{if !is_first_node}server: https://${lb_private_ip}:9345%{endif}
+    token: ${cluster_token}
+    node-name: ${node_name}
+    node-ip: ${node_private_ip}
+    advertise-address: ${node_private_ip}
+    tls-san:
+      - ${lb_public_ip}
+      - ${lb_private_ip}
+      %{if api_domain != ""}- ${api_domain}%{endif}
+    disable:
+      - rke2-ingress-nginx
+    node-taint:
+      - "CriticalAddonsOnly=true:NoExecute"
+    write-kubeconfig-mode: "0644"
+    datastore-endpoint: ${external_datastore_url}
+    cloud-provider-name: external
+    kubelet-arg:
+      - "cloud-provider=external"
+      - "provider-id=hcloud://$INSTANCE_ID"
+      - "node-ip=${node_private_ip}"
+    EOF
+    
+    chmod 600 /etc/rancher/rke2/config.yaml
+    echo "Config file created with Instance ID: $INSTANCE_ID"
+    cat /etc/rancher/rke2/config.yaml
+  - |
+    cat > /var/lib/rancher/rke2/server/manifests/rke2-canal-config.yaml << EOF
+    apiVersion: helm.cattle.io/v1
+    kind: HelmChartConfig
+    metadata:
+      name: rke2-canal
+      namespace: kube-system
+    spec:
+      valuesContent: |-
+        flannel:
+          iface: "enp7s0"
+    EOF
+    echo "Canal configuration created"
+  - systemctl enable rke2-server.service
+  - systemctl start rke2-server.service
+  - sleep 60
+  - mkdir -p /root/.kube
+  - cp /etc/rancher/rke2/rke2.yaml /root/.kube/config
+  - chmod 600 /root/.kube/config
+  - export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+  - echo 'export KUBECONFIG=/etc/rancher/rke2/rke2.yaml' >> /root/.bashrc
+  - echo 'export PATH=$PATH:/var/lib/rancher/rke2/bin' >> /root/.bashrc
