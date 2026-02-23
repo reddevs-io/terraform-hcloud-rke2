@@ -1,6 +1,7 @@
+<!-- BEGIN_TF_DOCS -->
 # Terraform Hetzner Cloud RKE2 Infrastructure Module
 
-This Terraform module provisions the infrastructure foundation for an RKE2 Kubernetes cluster on Hetzner Cloud. The module creates the underlying infrastructure components needed for a highly available RKE2 cluster using embedded etcd, with Kubernetes applications deployed separately.
+This Terraform module provisions the infrastructure foundation for an RKE2 Kubernetes cluster on Hetzner Cloud. The module creates the underlying infrastructure components needed for a highly available RKE2 cluster using embedded etcd by default, with Kubernetes applications deployed separately.
 
 ## Features
 
@@ -9,6 +10,7 @@ This Terraform module provisions the infrastructure foundation for an RKE2 Kuber
 - **Security**: Firewall rules, private networking, and secure access controls
 - **Infrastructure Focus**: Provisions servers, networking - applications deployed separately
 - **Cloud-Init**: Automated node provisioning and RKE2 installation
+- **Kubeconfig Export**: Automatic kubeconfig retrieval after cluster provisioning
 - **Optional External Datastore**: Support for external PostgreSQL-compatible datastore if needed
 
 ## Architecture
@@ -25,97 +27,50 @@ The module creates the infrastructure foundation:
 ## Usage
 
 ```hcl
-module "rke2_infrastructure" {
-  source = "your-org/rke2/hcloud"
-  version = "~> 1.0"
+module "rke2_cluster" {
+  source = "github.com/FranMako/terraform-hetzner-rke2"
 
-  # Hetzner Cloud Configuration
   hcloud_token = var.hcloud_token
-  cluster_name = "my-cluster"
-  
-  # Server Configuration
-  control_plane_server_type = "cx22"
-  worker_server_type        = "cx22"
-  control_plane_location    = "nbg1"
-  worker_location           = "nbg1"
-  
-  # Network Configuration
-  network_cidr = "10.0.0.0/16"
-  subnet_cidr  = "10.0.1.0/24"
-  
-  # RKE2 Configuration
-  rke2_token = var.rke2_token
-  
+  rke2_token   = var.rke2_token
+
+  cluster_name = "my-rke2-cluster"
+
+  # Control plane configuration
+  cluster_server_names_cp   = ["cp-1", "cp-2", "cp-3"]
+  private_ips_cp            = ["10.0.1.1", "10.0.1.2", "10.0.1.3"]
+  nb_cp_additional_servers  = 2
+
+  # Worker configuration
+  cluster_server_names_worker = ["worker-1", "worker-2"]
+  private_ips_workers         = ["10.0.1.11", "10.0.1.12"]
+  nb_worker_servers           = 2
+  worker_location             = "nbg1"
+
+  # SSH access (disabled by default)
+  ssh_allowed_ips = ["0.0.0.0/0"]
+
   # Optional: External datastore (uses embedded etcd if not provided)
   # datastore_endpoint = "postgres://user:password@host:5432/dbname"
 }
 ```
 
-## Examples
+## Kubeconfig Export
 
-- [Basic Usage](./examples/basic/) - Simple RKE2 infrastructure setup
+After successful deployment, the module automatically retrieves the admin kubeconfig from the first control plane node:
 
-<!-- BEGIN_TF_DOCS -->
-# Terraform Hetzner Cloud RKE2 Infrastructure Module
+- The kubeconfig is saved to the path specified by `kubeconfig_path` (default: `./kubeconfig.yaml`)
+- The `kubeconfig` output contains the kubeconfig content (sensitive value)
+- The `kubeconfig_command` output shows the manual command to retrieve kubeconfig if needed
 
-This Terraform module provisions the infrastructure foundation for an RKE2 Kubernetes cluster on Hetzner Cloud with AWS RDS as the external datastore. The module creates the underlying infrastructure components needed for a highly available RKE2 cluster, with Kubernetes applications deployed separately.
-
-## Features
-
-- **High Availability**: Multiple control plane nodes with external datastore (AWS RDS PostgreSQL)
-- **Hetzner Cloud Integration**: Native support for Hetzner Cloud services (Load Balancer, Networking, etc.)
-- **Security**: Firewall rules, private networking, and secure access controls
-- **Infrastructure Focus**: Provisions servers, networking, and datastore - applications deployed separately
-- **Cloud-Init**: Automated node provisioning and RKE2 installation
-
-## Architecture
-
-The module creates the infrastructure foundation:
-- Hetzner Cloud private network and subnet
-- Control plane nodes (configurable count) with RKE2 server
-- Worker nodes (configurable count) with RKE2 agent
-- Load balancer for Kubernetes API server
-- AWS RDS PostgreSQL instance as external datastore
-- Firewall rules for secure access
-- **Note**: Kubernetes applications (cert-manager, external-dns, Rancher) are deployed separately
-
-## Usage
-
-```hcl
-module "rke2_infrastructure" {
-  source = "your-org/rke2/hcloud"
-  version = "~> 1.0"
-
-  # Hetzner Cloud Configuration
-  hcloud_token = var.hcloud_token
-  cluster_name = "my-cluster"
-  
-  # Server Configuration
-  server_type     = "cx32"
-  server_location = "nbg1"
-  
-  # Network Configuration
-  network_cidr = "10.0.0.0/16"
-  subnet_cidr  = "10.0.1.0/24"
-  
-  # RKE2 Configuration
-  rke2_token = var.rke2_token
-  
-  # AWS RDS Configuration
-  aws_region                   = "eu-central-1"
-  external_datastore_url = var.datastore_url
-  db_username           = "postgres"
-  allowed_cidr          = ["10.0.0.0/16"]
-  allocated_storage_gb  = 20
-  engine_version        = "17.6"
-}
+```bash
+# Use the exported kubeconfig
+export KUBECONFIG=./kubeconfig.yaml
+kubectl get nodes
 ```
 
 ## Examples
 
 - [Basic Usage](./examples/basic/) - Simple RKE2 infrastructure setup
-
-## Requirements
 
 ## Requirements
 
@@ -123,24 +78,24 @@ module "rke2_infrastructure" {
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.2.0 |
 | <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | 1.52.0 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.5 |
+| <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.1 |
 | <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 4.0 |
-
-## Providers
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | 1.52.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.7.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | 4.1.0 |
 
 ## Modules
 
-## Modules
-
 No modules.
-
-## Resources
 
 ## Resources
 
@@ -165,9 +120,12 @@ No modules.
 | [hcloud_server_network.control_plane_first_network](https://registry.terraform.io/providers/hetznercloud/hcloud/1.52.0/docs/resources/server_network) | resource |
 | [hcloud_server_network.worker_network](https://registry.terraform.io/providers/hetznercloud/hcloud/1.52.0/docs/resources/server_network) | resource |
 | [hcloud_ssh_key.rke2_key](https://registry.terraform.io/providers/hetznercloud/hcloud/1.52.0/docs/resources/ssh_key) | resource |
+| [local_sensitive_file.ssh_key_for_kubeconfig](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
+| [null_resource.capture_host_key](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [null_resource.cleanup_temp_files](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [null_resource.kubeconfig_export](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [random_id.ssh_key_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [tls_private_key.rke2_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
-
-## Inputs
 
 ## Inputs
 
@@ -181,6 +139,7 @@ No modules.
 | <a name="input_datastore_endpoint"></a> [datastore\_endpoint](#input\_datastore\_endpoint) | External datastore endpoint URL for RKE2 (e.g. postgres://user:password@host:5432/dbname). If not set, RKE2 will use the embedded etcd. | `string` | `null` | no |
 | <a name="input_enable_ssh_access"></a> [enable\_ssh\_access](#input\_enable\_ssh\_access) | Enable SSH access rules in firewall (port 22) | `bool` | `false` | no |
 | <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token | `string` | n/a | yes |
+| <a name="input_kubeconfig_path"></a> [kubeconfig\_path](#input\_kubeconfig\_path) | Local path where the kubeconfig file will be copied | `string` | `"./kubeconfig.yaml"` | no |
 | <a name="input_nb_cp_additional_servers"></a> [nb\_cp\_additional\_servers](#input\_nb\_cp\_additional\_servers) | Number of additional control-plane nodes in the RKE2 cluster | `number` | n/a | yes |
 | <a name="input_nb_worker_servers"></a> [nb\_worker\_servers](#input\_nb\_worker\_servers) | Number of worker nodes in the RKE2 cluster | `number` | n/a | yes |
 | <a name="input_network_cidr"></a> [network\_cidr](#input\_network\_cidr) | CIDR block for the private network | `string` | `"10.0.0.0/16"` | no |
@@ -197,13 +156,12 @@ No modules.
 
 ## Outputs
 
-## Outputs
-
 | Name | Description |
 |------|-------------|
 | <a name="output_api_server_lb_ip"></a> [api\_server\_lb\_ip](#output\_api\_server\_lb\_ip) | Load balancer IP for Kubernetes API |
 | <a name="output_control_plane_ips"></a> [control\_plane\_ips](#output\_control\_plane\_ips) | Public IP addresses of control plane nodes |
 | <a name="output_first_control_plane_private_ip"></a> [first\_control\_plane\_private\_ip](#output\_first\_control\_plane\_private\_ip) | Private IP of the first control plane node |
+| <a name="output_kubeconfig"></a> [kubeconfig](#output\_kubeconfig) | Admin kubeconfig content for the RKE2 cluster (null if not yet retrieved) |
 | <a name="output_kubeconfig_command"></a> [kubeconfig\_command](#output\_kubeconfig\_command) | Command to get kubeconfig from first control plane node |
 | <a name="output_private_network_cidr"></a> [private\_network\_cidr](#output\_private\_network\_cidr) | Private network CIDR |
 | <a name="output_private_network_id"></a> [private\_network\_id](#output\_private\_network\_id) | Hetzner Cloud private network ID |

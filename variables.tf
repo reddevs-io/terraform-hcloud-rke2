@@ -57,6 +57,7 @@ variable "control_plane_location" {
 variable "worker_location" {
   description = "Hetzner location for worker nodes"
   type        = string
+  default     = "nbg1"
 }
 
 variable "network_zone" {
@@ -118,5 +119,16 @@ variable "ssh_key_algorithm" {
   validation {
     condition     = contains(["RSA", "ED25519", "ECDSA"], var.ssh_key_algorithm)
     error_message = "SSH key algorithm must be one of: RSA, ED25519, ECDSA."
+  }
+}
+
+variable "kubeconfig_path" {
+  description = "Local path where the kubeconfig file will be copied. Must be an absolute path or relative path (tilde ~ is not supported)."
+  type        = string
+  default     = "./kubeconfig.yaml"
+
+  validation {
+    condition     = !startswith(var.kubeconfig_path, "~")
+    error_message = "The kubeconfig_path cannot start with ~. Use absolute paths (e.g., /home/user/kubeconfig.yaml) or relative paths (e.g., ./kubeconfig.yaml)."
   }
 }

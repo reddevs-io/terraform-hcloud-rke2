@@ -4,7 +4,7 @@ terraform {
   required_providers {
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = "~> 1.45"
+      version = "~> 1.52"
     }
     random = {
       source  = "hashicorp/random"
@@ -22,6 +22,20 @@ provider "hcloud" {
 resource "random_password" "rke2_token" {
   length  = 32
   special = true
+}
+
+# Generate control plane server names based on number of additional control plane nodes
+locals {
+  cp_count     = 1 + var.nb_cp_additional_servers
+  worker_count = var.nb_worker_servers
+
+  control_plane_names = [for i in range(local.cp_count) : "${var.cluster_name}-cp-${i == 0 ? "primary" : i}"]
+  worker_names        = [for i in range(local.worker_count) : "${var.cluster_name}-worker-${i}"]
+
+  # Generate private IPs for control plane nodes (starting from .10)
+  control_plane_ips = [for i in range(local.cp_count) : cidrhost(var.subnet_cidr, 10 + i)]
+  # Generate private IPs for worker nodes (starting after control plane)
+  worker_ips = [for i in range(local.worker_count) : cidrhost(var.subnet_cidr, 10 + local.cp_count + i)]
 }
 
 # Create the RKE2 infrastructure using the module
@@ -45,9 +59,18 @@ module "rke2_infrastructure" {
   network_zone = var.network_zone
 
   # SSH Access
-  ssh_allowed_ips = var.ssh_allowed_ips
+  ssh_allowed_ips   = var.ssh_allowed_ips
+  enable_ssh_access = var.enable_ssh_access
 
-  # Cluster Configuration
+  # Cluster Configuration - Server Names
+  cluster_server_names_cp     = local.control_plane_names
+  cluster_server_names_worker = local.worker_names
+
+  # Cluster Configuration - Private IPs
+  private_ips_cp      = local.control_plane_ips
+  private_ips_workers = local.worker_ips
+
+  # Cluster Configuration - Node Counts
   nb_cp_additional_servers = var.nb_cp_additional_servers
   nb_worker_servers        = var.nb_worker_servers
 

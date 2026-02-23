@@ -24,9 +24,12 @@ When `enable_ssh_access` is set to `false`, the SSH rules (port 22) will be comp
 
 ## Usage
 
-1. Copy `terraform.tfvars.example` to `terraform.tfvars`
-2. Fill in the required variables
-3. Run:
+1. Create a `terraform.tfvars` file with the required variables:
+   ```hcl
+   hcloud_token = "your-hetzner-cloud-api-token"
+   rke2_token   = "your-rke2-cluster-token"
+   ```
+2. Run:
    ```bash
    terraform init
    terraform plan

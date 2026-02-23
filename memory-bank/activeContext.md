@@ -68,6 +68,32 @@ Based on the existing `.tf` files, the following components are implemented:
 2. **Documentation**: README is auto-generated; could use more inline comments
 3. **Examples**: Only one complete example (`examples/basic/`); `examples/ssh-disabled/` is minimal
 
+## Recent Changes
+
+- **2026-02-23 20:08:00 CET**: Documentation updates for kubeconfig export feature
+  - Updated `.terraform-docs.yml` to reflect current module architecture (embedded etcd, kubeconfig export)
+  - Regenerated root `README.md` using terraform-docs with updated content
+  - Added "Kubeconfig Export" section explaining automatic kubeconfig retrieval
+  - Updated `examples/basic/README.md` with kubeconfig export documentation
+  - Added `kubeconfig` output to Outputs tables in both README files
+
+- **2026-02-23 19:59:00 CET**: Security fixes for kubeconfig export functionality
+  - Replaced inline SSH key interpolation with `local_sensitive_file` resource (fixes key leak via shell/process list)
+  - Added `null_resource.capture_host_key` to capture server host key for strict verification
+  - Changed `scp` to use `StrictHostKeyChecking=yes` with captured known_hosts (fixes MITM vulnerability)
+  - Replaced `data.local_sensitive_file` with `local.kubeconfig_content` using `try()` (fixes plan-time error on fresh deployments)
+  - Added `random_id.ssh_key_suffix` for unique temp file names
+  - Added `random` provider to main.tf
+  - Fixed `kubeconfig_command` output to use `var.kubeconfig_path`
+  - Fixed alignment issues in `examples/basic/main.tf`
+  - Configuration validated with `tofu validate`
+
+- **2026-02-23 18:50:00 CET**: Added kubeconfig export functionality
+  - Created `kubeconfig.tf` with `null_resource.kubeconfig_export`
+  - Added `kubeconfig` output (sensitive)
+  - Added `kubeconfig_path` variable (defaults to `./kubeconfig.yaml`)
+  - Added `local` and `null` providers to main.tf
+
 ## Recent Decisions
 
 ### Embedded vs External Datastore

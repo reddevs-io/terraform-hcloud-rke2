@@ -45,7 +45,8 @@ ssh_allowed_ips = ["YOUR.IP.ADDRESS.HERE/32"]
 
 # Optional: Customize cluster configuration
 cluster_name = "my-rke2-cluster"
-server_type = "cx22"
+control_plane_server_type = "cx22"
+worker_server_type = "cx22"
 nb_cp_additional_servers = 1
 nb_worker_servers = 2
 
@@ -70,16 +71,27 @@ The deployment will take approximately 10-15 minutes.
 
 ### 5. Access Your Cluster
 
-After deployment, get the kubeconfig:
+After deployment, the kubeconfig is automatically retrieved and saved to `./kubeconfig.yaml` (default path). You can start using your cluster immediately:
 
 ```bash
-# Use the command from terraform output
-terraform output kubeconfig_command
-# Example: scp root@<ip>:/etc/rancher/rke2/rke2.yaml ./kubeconfig.yaml
-
-# Configure kubectl
+# The kubeconfig is automatically exported after deployment
 export KUBECONFIG=./kubeconfig.yaml
 kubectl get nodes
+```
+
+If you need to manually retrieve the kubeconfig, use the command from terraform output:
+
+```bash
+# Show the manual retrieval command
+terraform output kubeconfig_command
+# Example: scp root@<ip>:/etc/rancher/rke2/rke2.yaml ./kubeconfig.yaml
+```
+
+You can also access the kubeconfig content directly from the terraform output:
+
+```bash
+# Get kubeconfig content (sensitive output)
+terraform output -raw kubeconfig > kubeconfig.yaml
 ```
 
 ## Outputs
@@ -89,12 +101,15 @@ kubectl get nodes
 | `api_server_lb_ip` | Load balancer IP for Kubernetes API |
 | `control_plane_ips` | Public IP addresses of control plane nodes |
 | `worker_ips` | Public IP addresses of worker nodes |
-| `kubeconfig_command` | Command to retrieve kubeconfig |
+| `kubeconfig_command` | Command to get kubeconfig from first control plane node |
 | `first_control_plane_private_ip` | Private IP of the first control plane node |
 | `private_network_cidr` | Private network CIDR |
 | `private_network_id` | Hetzner Cloud private network ID |
 | `subnet_id` | Hetzner Cloud subnet ID |
+| `ssh_private_key` | Generated SSH private key (sensitive) |
+| `ssh_public_key` | Generated SSH public key |
 | `ssh_key_name` | Name of the SSH key in Hetzner Cloud |
+| `kubeconfig` | Admin kubeconfig content for the RKE2 cluster (sensitive) |
 | `rke2_token` | Generated RKE2 cluster token (sensitive) |
 
 ## Customization
@@ -113,7 +128,8 @@ nb_worker_servers        = 3  # Total workers: 3
 Change server specifications:
 
 ```hcl
-server_type = "cx32"  # More powerful servers
+control_plane_server_type = "cx32"  # More powerful control plane servers
+worker_server_type        = "cx32"  # More powerful worker servers
 ```
 
 Available server types: `cx22`, `cx32`, `cx42`, `cx52`, etc.
@@ -123,8 +139,9 @@ Available server types: `cx22`, `cx32`, `cx42`, `cx52`, etc.
 Deploy in different regions:
 
 ```hcl
-server_location = "fsn1"  # Falkenstein
-network_zone    = "eu-central"
+control_plane_location = "fsn1"  # Falkenstein
+worker_location        = "fsn1"  # Falkenstein
+network_zone           = "eu-central"
 ```
 
 ## Security Considerations

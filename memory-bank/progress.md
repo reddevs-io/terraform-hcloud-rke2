@@ -61,6 +61,19 @@ This file tracks the project's progress using a task list format.
 - [ ] Variable validation blocks for input constraints
 - [ ] Documentation refinement with inline comments
 
+### Recently Completed
+- [x] Documentation updates for kubeconfig export (2026-02-23)
+  - Updated `.terraform-docs.yml` with current architecture
+  - Regenerated root README.md with terraform-docs
+  - Added "Kubeconfig Export" section to README
+  - Updated examples/basic/README.md with kubeconfig documentation
+- [x] Kubeconfig export functionality (2026-02-23)
+- [x] Security fixes for kubeconfig export (2026-02-23)
+  - SSH key now written via `local_sensitive_file` instead of shell interpolation
+  - Host key verification enabled for kubeconfig retrieval
+  - Plan-time error fixed with `try()` for kubeconfig content
+  - Output path now uses `var.kubeconfig_path`
+
 ## Next Steps
 
 ### Short Term

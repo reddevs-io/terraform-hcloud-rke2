@@ -26,7 +26,7 @@ output "worker_ips" {
 
 output "kubeconfig_command" {
   description = "Command to get kubeconfig from first control plane node"
-  value       = "scp root@${hcloud_server.control_plane_first.ipv4_address}:/etc/rancher/rke2/rke2.yaml ./kubeconfig.yaml"
+  value       = "scp root@${hcloud_server.control_plane_first.ipv4_address}:/etc/rancher/rke2/rke2.yaml ${var.kubeconfig_path}"
 }
 
 output "first_control_plane_private_ip" {
@@ -63,4 +63,10 @@ output "ssh_public_key" {
 output "ssh_key_name" {
   description = "Name of the SSH key in Hetzner Cloud"
   value       = hcloud_ssh_key.rke2_key.name
+}
+
+output "kubeconfig" {
+  description = "Admin kubeconfig content for the RKE2 cluster. Returns null if enable_ssh_access is false (default) or if kubeconfig hasn't been retrieved yet. IMPORTANT: This value is read at plan time and may be stale after cluster recreation - run 'terraform apply' twice or use kubeconfig_command for the most current kubeconfig."
+  value       = local.kubeconfig_content
+  sensitive   = true
 }

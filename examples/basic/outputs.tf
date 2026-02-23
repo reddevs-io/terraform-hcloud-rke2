@@ -38,6 +38,28 @@ output "subnet_id" {
   value       = module.rke2_infrastructure.subnet_id
 }
 
+output "ssh_private_key" {
+  description = "Generated SSH private key"
+  value       = module.rke2_infrastructure.ssh_private_key
+  sensitive   = true
+}
+
+output "ssh_public_key" {
+  description = "Generated SSH public key"
+  value       = module.rke2_infrastructure.ssh_public_key
+}
+
+output "ssh_key_name" {
+  description = "Name of the SSH key in Hetzner Cloud"
+  value       = module.rke2_infrastructure.ssh_key_name
+}
+
+output "kubeconfig" {
+  description = "Admin kubeconfig content for the RKE2 cluster"
+  value       = module.rke2_infrastructure.kubeconfig
+  sensitive   = true
+}
+
 output "rke2_token" {
   description = "Generated RKE2 cluster token"
   value       = random_password.rke2_token.result
