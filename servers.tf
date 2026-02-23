@@ -1,12 +1,7 @@
-# Generate SSH Key Pair
-resource "tls_private_key" "rke2_key" {
-  algorithm = var.ssh_key_algorithm
-}
-
 # SSH Key
 resource "hcloud_ssh_key" "rke2_key" {
   name       = "${var.cluster_name}-ssh-key"
-  public_key = tls_private_key.rke2_key.public_key_openssh
+  public_key = file(var.ssh_public_key_path)
 }
 
 resource "hcloud_placement_group" "cp_placement_group" {
@@ -20,7 +15,7 @@ resource "hcloud_placement_group" "worker_placement_group" {
 }
 
 locals {
-  api_server_domain = "${var.cluster_name}-api-server.reddevs.io"
+  api_server_domain = var.api_server_domain != null ? var.api_server_domain : ""
 }
 
 # First Control Plane Server (cluster initializer)

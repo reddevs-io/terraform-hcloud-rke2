@@ -24,8 +24,10 @@ module "rke2_cluster" {
   subnet_cidr  = "10.0.1.0/24"
 
   # SSH configuration - DISABLED
-  enable_ssh_access = false
-  ssh_allowed_ips   = [] # Not used when SSH is disabled
+  enable_ssh_access    = false
+  ssh_allowed_ips      = [] # Not used when SSH is disabled
+  ssh_public_key_path  = var.ssh_public_key_path
+  ssh_private_key_path = null # Not needed when SSH access is disabled
 
   # Required variables (would be provided via terraform.tfvars)
   hcloud_token = var.hcloud_token

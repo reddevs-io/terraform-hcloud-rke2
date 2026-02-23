@@ -81,7 +81,6 @@ kubectl get nodes
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.5 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.1 |
-| <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 4.0 |
 
 ## Providers
 
@@ -91,7 +90,6 @@ kubectl get nodes
 | <a name="provider_local"></a> [local](#provider\_local) | 2.7.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
 | <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.1.0 |
 
 ## Modules
 
@@ -125,12 +123,12 @@ No modules.
 | [null_resource.cleanup_temp_files](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.kubeconfig_export](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_id.ssh_key_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
-| [tls_private_key.rke2_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_api_server_domain"></a> [api\_server\_domain](#input\_api\_server\_domain) | Domain name for the Kubernetes API server. If set, the domain will be added to the TLS SANs. This domain should resolve to the load balancer IP. | `string` | `null` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Name of the RKE2 cluster | `string` | `"rke2-cluster"` | no |
 | <a name="input_cluster_server_names_cp"></a> [cluster\_server\_names\_cp](#input\_cluster\_server\_names\_cp) | List of control plane node server names | `list(string)` | n/a | yes |
 | <a name="input_cluster_server_names_worker"></a> [cluster\_server\_names\_worker](#input\_cluster\_server\_names\_worker) | List of worker node server names | `list(string)` | n/a | yes |
@@ -139,7 +137,7 @@ No modules.
 | <a name="input_datastore_endpoint"></a> [datastore\_endpoint](#input\_datastore\_endpoint) | External datastore endpoint URL for RKE2 (e.g. postgres://user:password@host:5432/dbname). If not set, RKE2 will use the embedded etcd. | `string` | `null` | no |
 | <a name="input_enable_ssh_access"></a> [enable\_ssh\_access](#input\_enable\_ssh\_access) | Enable SSH access rules in firewall (port 22) | `bool` | `false` | no |
 | <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token | `string` | n/a | yes |
-| <a name="input_kubeconfig_path"></a> [kubeconfig\_path](#input\_kubeconfig\_path) | Local path where the kubeconfig file will be copied | `string` | `"./kubeconfig.yaml"` | no |
+| <a name="input_kubeconfig_path"></a> [kubeconfig\_path](#input\_kubeconfig\_path) | Local path where the kubeconfig file will be copied. Must be an absolute path or relative path (tilde ~ is not supported). | `string` | `"./kubeconfig.yaml"` | no |
 | <a name="input_nb_cp_additional_servers"></a> [nb\_cp\_additional\_servers](#input\_nb\_cp\_additional\_servers) | Number of additional control-plane nodes in the RKE2 cluster | `number` | n/a | yes |
 | <a name="input_nb_worker_servers"></a> [nb\_worker\_servers](#input\_nb\_worker\_servers) | Number of worker nodes in the RKE2 cluster | `number` | n/a | yes |
 | <a name="input_network_cidr"></a> [network\_cidr](#input\_network\_cidr) | CIDR block for the private network | `string` | `"10.0.0.0/16"` | no |
@@ -149,9 +147,10 @@ No modules.
 | <a name="input_rke2_token"></a> [rke2\_token](#input\_rke2\_token) | RKE2 cluster token | `string` | n/a | yes |
 | <a name="input_server_image"></a> [server\_image](#input\_server\_image) | Server image to use | `string` | `"ubuntu-24.04"` | no |
 | <a name="input_ssh_allowed_ips"></a> [ssh\_allowed\_ips](#input\_ssh\_allowed\_ips) | List of IPs allowed to SSH | `list(string)` | n/a | yes |
-| <a name="input_ssh_key_algorithm"></a> [ssh\_key\_algorithm](#input\_ssh\_key\_algorithm) | Algorithm for SSH key generation | `string` | `"ED25519"` | no |
+| <a name="input_ssh_private_key_path"></a> [ssh\_private\_key\_path](#input\_ssh\_private\_key\_path) | Path to the SSH private key file corresponding to the public key. Required when enable\_ssh\_access is true for kubeconfig retrieval. | `string` | `null` | no |
+| <a name="input_ssh_public_key_path"></a> [ssh\_public\_key\_path](#input\_ssh\_public\_key\_path) | Path to the SSH public key file to be used for server access | `string` | n/a | yes |
 | <a name="input_subnet_cidr"></a> [subnet\_cidr](#input\_subnet\_cidr) | CIDR block for the subnet | `string` | `"10.0.1.0/24"` | no |
-| <a name="input_worker_location"></a> [worker\_location](#input\_worker\_location) | Hetzner location for worker nodes | `string` | n/a | yes |
+| <a name="input_worker_location"></a> [worker\_location](#input\_worker\_location) | Hetzner location for worker nodes | `string` | `"nbg1"` | no |
 | <a name="input_worker_server_type"></a> [worker\_server\_type](#input\_worker\_server\_type) | Server type for worker nodes | `string` | `"cx22"` | no |
 
 ## Outputs
@@ -161,13 +160,11 @@ No modules.
 | <a name="output_api_server_lb_ip"></a> [api\_server\_lb\_ip](#output\_api\_server\_lb\_ip) | Load balancer IP for Kubernetes API |
 | <a name="output_control_plane_ips"></a> [control\_plane\_ips](#output\_control\_plane\_ips) | Public IP addresses of control plane nodes |
 | <a name="output_first_control_plane_private_ip"></a> [first\_control\_plane\_private\_ip](#output\_first\_control\_plane\_private\_ip) | Private IP of the first control plane node |
-| <a name="output_kubeconfig"></a> [kubeconfig](#output\_kubeconfig) | Admin kubeconfig content for the RKE2 cluster (null if not yet retrieved) |
+| <a name="output_kubeconfig"></a> [kubeconfig](#output\_kubeconfig) | Admin kubeconfig content for the RKE2 cluster (only available when enable\_ssh\_access and ssh\_private\_key\_path are set) |
 | <a name="output_kubeconfig_command"></a> [kubeconfig\_command](#output\_kubeconfig\_command) | Command to get kubeconfig from first control plane node |
 | <a name="output_private_network_cidr"></a> [private\_network\_cidr](#output\_private\_network\_cidr) | Private network CIDR |
 | <a name="output_private_network_id"></a> [private\_network\_id](#output\_private\_network\_id) | Hetzner Cloud private network ID |
 | <a name="output_ssh_key_name"></a> [ssh\_key\_name](#output\_ssh\_key\_name) | Name of the SSH key in Hetzner Cloud |
-| <a name="output_ssh_private_key"></a> [ssh\_private\_key](#output\_ssh\_private\_key) | Generated SSH private key |
-| <a name="output_ssh_public_key"></a> [ssh\_public\_key](#output\_ssh\_public\_key) | Generated SSH public key |
 | <a name="output_subnet_id"></a> [subnet\_id](#output\_subnet\_id) | Hetzner Cloud subnet ID |
 | <a name="output_worker_ips"></a> [worker\_ips](#output\_worker\_ips) | Public IP addresses of worker nodes |
 

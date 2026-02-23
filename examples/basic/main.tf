@@ -59,8 +59,10 @@ module "rke2_infrastructure" {
   network_zone = var.network_zone
 
   # SSH Access
-  ssh_allowed_ips   = var.ssh_allowed_ips
-  enable_ssh_access = var.enable_ssh_access
+  ssh_allowed_ips      = var.ssh_allowed_ips
+  enable_ssh_access    = var.enable_ssh_access
+  ssh_public_key_path  = var.ssh_public_key_path
+  ssh_private_key_path = var.ssh_private_key_path
 
   # Cluster Configuration - Server Names
   cluster_server_names_cp     = local.control_plane_names

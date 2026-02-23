@@ -60,7 +60,6 @@ Based on the existing `.tf` files, the following components are implemented:
 1. **No Terraform Tests**: No `.tftest.hcl` files or test directory observed
 2. **SSH Access Optional**: `enable_ssh_access` variable exists but defaults to `false`
 3. **No Variable Validation**: Most variables lack validation blocks (except `ssh_key_algorithm`)
-4. **Hardcoded Domain**: `api_server_domain` uses hardcoded `reddevs.io` suffix in locals
 
 ### Potential Improvements Identified
 
@@ -69,6 +68,12 @@ Based on the existing `.tf` files, the following components are implemented:
 3. **Examples**: Only one complete example (`examples/basic/`); `examples/ssh-disabled/` is minimal
 
 ## Recent Changes
+
+- **2026-02-23 21:14:00 CET**: Removed hardcoded `api_server_domain` default
+  - Added optional `api_server_domain` variable to `variables.tf`
+  - Updated locals in `servers.tf` to use the variable (defaults to empty string when not set)
+  - Removed hardcoded `reddevs.io` domain suffix
+  - Regenerated README.md and examples/basic/README.md with terraform-docs
 
 - **2026-02-23 20:08:00 CET**: Documentation updates for kubeconfig export feature
   - Updated `.terraform-docs.yml` to reflect current module architecture (embedded etcd, kubeconfig export)
@@ -144,4 +149,4 @@ Based on the existing `.tf` files, the following components are implemented:
 
 ---
 
-*Last updated: 2026-02-23 14:07:00 CET*
+*Last updated: 2026-02-23 21:15:00 CET*

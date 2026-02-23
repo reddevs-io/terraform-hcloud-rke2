@@ -4,10 +4,6 @@ terraform {
       source  = "hetznercloud/hcloud"
       version = "1.52.0"
     }
-    tls = {
-      source  = "hashicorp/tls"
-      version = "~> 4.0"
-    }
     local = {
       source  = "hashicorp/local"
       version = "~> 2.5"

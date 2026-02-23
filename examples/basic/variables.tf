@@ -87,3 +87,14 @@ variable "nb_worker_servers" {
   type        = number
   default     = 2
 }
+
+variable "ssh_public_key_path" {
+  description = "Path to the SSH public key file to be used for server access"
+  type        = string
+}
+
+variable "ssh_private_key_path" {
+  description = "Path to the SSH private key file corresponding to the public key. Required when enable_ssh_access is true for kubeconfig retrieval."
+  type        = string
+  default     = null
+}

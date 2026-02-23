@@ -57,6 +57,7 @@ terraform.rc
 kubeconfig*
 *.kubeconfig
 config
+!kubeconfig.tf
 
 # Ignore SSH keys
 *.pem

@@ -4,10 +4,11 @@ This file documents the technologies, tooling, and technical constraints used in
 
 ## Primary Technologies
 
-### Terraform (HCL)
+### OpenTofu (HCL)
 
 - **Version**: `>= 1.2.0`
 - **Primary IaC language** for infrastructure provisioning
+- **CLI tool**: `tofu` (OpenTofu fork of Terraform)
 - Module pattern for reusability
 
 ### Hetzner Cloud Provider (`hetznercloud/hcloud`)
@@ -25,12 +26,6 @@ This file documents the technologies, tooling, and technical constraints used in
   - `hcloud_load_balancer_target` - LB backend targets
   - `hcloud_ssh_key` - SSH key management
   - `hcloud_placement_group` - Placement groups for HA
-
-### TLS Provider (`hashicorp/tls`)
-
-- **Version**: `~> 4.0`
-- Used for SSH key generation:
-  - `tls_private_key` - Generates ED25519/RSA/ECDSA keys
 
 ## RKE2 (Rancher Kubernetes Engine 2)
 
@@ -94,9 +89,8 @@ datastore-endpoint: postgres://<username>:<password>@<host>:5432/<database>
 
 | Provider | Version | Constraint |
 |----------|---------|------------|
-| terraform | >= 1.2.0 | - |
+| tofu (OpenTofu) | >= 1.2.0 | - |
 | hcloud | 1.52.0 | ~> 1.45 |
-| tls | 4.0.x | ~> 4.0 |
 
 ## Technical Constraints
 
@@ -117,7 +111,8 @@ datastore-endpoint: postgres://<username>:<password>@<host>:5432/<database>
 - **Shell**: zsh
 - **OS**: Linux 6.17
 - **Working Directory**: `/home/franmako/www/terraform-hetzner-rke2`
+- **IaC Tool**: OpenTofu (`tofu`)
 
 ---
 
-*Last updated: 2026-02-23 14:06:00 CET*
+*Last updated: 2026-02-23 21:33:00 CET*

@@ -1,204 +1,145 @@
-# Basic RKE2 Infrastructure Example
+<!-- BEGIN_TF_DOCS -->
+# Terraform Hetzner Cloud RKE2 Infrastructure Module
 
-This example demonstrates how to provision the infrastructure for an RKE2 Kubernetes cluster on Hetzner Cloud using the terraform-hcloud-rke2 module.
+This Terraform module provisions the infrastructure foundation for an RKE2 Kubernetes cluster on Hetzner Cloud. The module creates the underlying infrastructure components needed for a highly available RKE2 cluster using embedded etcd by default, with Kubernetes applications deployed separately.
+
+## Features
+
+- **High Availability**: Multiple control plane nodes with embedded etcd (or optional external datastore)
+- **Hetzner Cloud Integration**: Native support for Hetzner Cloud services (Load Balancer, Networking, etc.)
+- **Security**: Firewall rules, private networking, and secure access controls
+- **Infrastructure Focus**: Provisions servers, networking - applications deployed separately
+- **Cloud-Init**: Automated node provisioning and RKE2 installation
+- **Kubeconfig Export**: Automatic kubeconfig retrieval after cluster provisioning
+- **Optional External Datastore**: Support for external PostgreSQL-compatible datastore if needed
 
 ## Architecture
 
-This example creates the infrastructure foundation:
-- 2 control plane nodes (1 initial + 1 additional) with RKE2 server
-- 2 worker nodes with RKE2 agent
+The module creates the infrastructure foundation:
+- Hetzner Cloud private network and subnet
+- Control plane nodes (configurable count) with RKE2 server
+- Worker nodes (configurable count) with RKE2 agent
+- Load balancer for Kubernetes API server
 - Embedded etcd by default (optional external datastore support)
-- Hetzner Cloud Load Balancer for API server
-- Private network with firewall rules
+- Firewall rules for secure access
 - **Note**: Kubernetes applications (cert-manager, external-dns, Rancher) are deployed separately
 
-## Prerequisites
-
-1. **Hetzner Cloud Account**: Create an account and generate an API token
-2. **Terraform**: Version >= 1.2.0
-
-## Setup Instructions
-
-### 1. Clone and Navigate
-
-```bash
-git clone <your-repo>
-cd terraform-hcloud-rke2/examples/basic
-```
-
-### 2. Configure Variables
-
-Copy the example variables file and customize it:
-
-```bash
-cp terraform.tfvars.example terraform.tfvars
-```
-
-Edit `terraform.tfvars` with your actual values:
+## Usage
 
 ```hcl
-# Required: Hetzner Cloud API token
-hcloud_token = "your-hetzner-cloud-api-token"
+module "rke2_cluster" {
+  source = "github.com/FranMako/terraform-hetzner-rke2"
 
-# Security: Replace with your actual IP
-ssh_allowed_ips = ["YOUR.IP.ADDRESS.HERE/32"]
+  hcloud_token = var.hcloud_token
+  rke2_token   = var.rke2_token
 
-# Optional: Customize cluster configuration
-cluster_name = "my-rke2-cluster"
-control_plane_server_type = "cx22"
-worker_server_type = "cx22"
-nb_cp_additional_servers = 1
-nb_worker_servers = 2
+  cluster_name = "my-rke2-cluster"
 
-# Optional: External datastore (uses embedded etcd if not provided)
-# datastore_endpoint = "postgres://user:password@host:5432/dbname"
+  # Control plane configuration
+  cluster_server_names_cp   = ["cp-1", "cp-2", "cp-3"]
+  private_ips_cp            = ["10.0.1.1", "10.0.1.2", "10.0.1.3"]
+  nb_cp_additional_servers  = 2
+
+  # Worker configuration
+  cluster_server_names_worker = ["worker-1", "worker-2"]
+  private_ips_workers         = ["10.0.1.11", "10.0.1.12"]
+  nb_worker_servers           = 2
+  worker_location             = "nbg1"
+
+  # SSH access (disabled by default)
+  ssh_allowed_ips = ["0.0.0.0/0"]
+
+  # Optional: External datastore (uses embedded etcd if not provided)
+  # datastore_endpoint = "postgres://user:password@host:5432/dbname"
+}
 ```
 
-### 3. Initialize and Plan
+## Kubeconfig Export
+
+After successful deployment, the module automatically retrieves the admin kubeconfig from the first control plane node:
+
+- The kubeconfig is saved to the path specified by `kubeconfig_path` (default: `./kubeconfig.yaml`)
+- The `kubeconfig` output contains the kubeconfig content (sensitive value)
+- The `kubeconfig_command` output shows the manual command to retrieve kubeconfig if needed
 
 ```bash
-terraform init
-terraform plan
-```
-
-### 4. Deploy
-
-```bash
-terraform apply
-```
-
-The deployment will take approximately 10-15 minutes.
-
-### 5. Access Your Cluster
-
-After deployment, the kubeconfig is automatically retrieved and saved to `./kubeconfig.yaml` (default path). You can start using your cluster immediately:
-
-```bash
-# The kubeconfig is automatically exported after deployment
+# Use the exported kubeconfig
 export KUBECONFIG=./kubeconfig.yaml
 kubectl get nodes
 ```
 
-If you need to manually retrieve the kubeconfig, use the command from terraform output:
+## Examples
 
-```bash
-# Show the manual retrieval command
-terraform output kubeconfig_command
-# Example: scp root@<ip>:/etc/rancher/rke2/rke2.yaml ./kubeconfig.yaml
-```
+- [Basic Usage](./examples/basic/) - Simple RKE2 infrastructure setup
 
-You can also access the kubeconfig content directly from the terraform output:
+## Requirements
 
-```bash
-# Get kubeconfig content (sensitive output)
-terraform output -raw kubeconfig > kubeconfig.yaml
-```
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.2.0 |
+| <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | ~> 1.52 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.1 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_random"></a> [random](#provider\_random) | 3.8.1 |
+
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_rke2_infrastructure"></a> [rke2\_infrastructure](#module\_rke2\_infrastructure) | ../../ | n/a |
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [random_password.rke2_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Name of the RKE2 cluster | `string` | `"example-cluster"` | no |
+| <a name="input_control_plane_location"></a> [control\_plane\_location](#input\_control\_plane\_location) | Hetzner location for control plane nodes | `string` | `"nbg1"` | no |
+| <a name="input_control_plane_server_type"></a> [control\_plane\_server\_type](#input\_control\_plane\_server\_type) | Server type for control plane nodes | `string` | `"cx22"` | no |
+| <a name="input_enable_ssh_access"></a> [enable\_ssh\_access](#input\_enable\_ssh\_access) | Enable SSH access rules in firewall (port 22) | `bool` | `false` | no |
+| <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token | `string` | n/a | yes |
+| <a name="input_nb_cp_additional_servers"></a> [nb\_cp\_additional\_servers](#input\_nb\_cp\_additional\_servers) | Number of additional control-plane nodes in the RKE2 cluster | `number` | `1` | no |
+| <a name="input_nb_worker_servers"></a> [nb\_worker\_servers](#input\_nb\_worker\_servers) | Number of worker nodes in the RKE2 cluster | `number` | `2` | no |
+| <a name="input_network_cidr"></a> [network\_cidr](#input\_network\_cidr) | CIDR block for the private network | `string` | `"10.0.0.0/16"` | no |
+| <a name="input_network_zone"></a> [network\_zone](#input\_network\_zone) | Network zone for the subnet | `string` | `"eu-central"` | no |
+| <a name="input_server_image"></a> [server\_image](#input\_server\_image) | Server image to use | `string` | `"ubuntu-24.04"` | no |
+| <a name="input_ssh_allowed_ips"></a> [ssh\_allowed\_ips](#input\_ssh\_allowed\_ips) | List of IPs allowed to SSH | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
+| <a name="input_ssh_private_key_path"></a> [ssh\_private\_key\_path](#input\_ssh\_private\_key\_path) | Path to the SSH private key file corresponding to the public key. Required when enable\_ssh\_access is true for kubeconfig retrieval. | `string` | `null` | no |
+| <a name="input_ssh_public_key_path"></a> [ssh\_public\_key\_path](#input\_ssh\_public\_key\_path) | Path to the SSH public key file to be used for server access | `string` | n/a | yes |
+| <a name="input_subnet_cidr"></a> [subnet\_cidr](#input\_subnet\_cidr) | CIDR block for the subnet | `string` | `"10.0.1.0/24"` | no |
+| <a name="input_worker_location"></a> [worker\_location](#input\_worker\_location) | Hetzner location for worker nodes | `string` | `"nbg1"` | no |
+| <a name="input_worker_server_type"></a> [worker\_server\_type](#input\_worker\_server\_type) | Server type for worker nodes | `string` | `"cx22"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| `api_server_lb_ip` | Load balancer IP for Kubernetes API |
-| `control_plane_ips` | Public IP addresses of control plane nodes |
-| `worker_ips` | Public IP addresses of worker nodes |
-| `kubeconfig_command` | Command to get kubeconfig from first control plane node |
-| `first_control_plane_private_ip` | Private IP of the first control plane node |
-| `private_network_cidr` | Private network CIDR |
-| `private_network_id` | Hetzner Cloud private network ID |
-| `subnet_id` | Hetzner Cloud subnet ID |
-| `ssh_private_key` | Generated SSH private key (sensitive) |
-| `ssh_public_key` | Generated SSH public key |
-| `ssh_key_name` | Name of the SSH key in Hetzner Cloud |
-| `kubeconfig` | Admin kubeconfig content for the RKE2 cluster (sensitive) |
-| `rke2_token` | Generated RKE2 cluster token (sensitive) |
+| <a name="output_api_server_lb_ip"></a> [api\_server\_lb\_ip](#output\_api\_server\_lb\_ip) | Load balancer IP for Kubernetes API |
+| <a name="output_control_plane_ips"></a> [control\_plane\_ips](#output\_control\_plane\_ips) | Public IP addresses of control plane nodes |
+| <a name="output_first_control_plane_private_ip"></a> [first\_control\_plane\_private\_ip](#output\_first\_control\_plane\_private\_ip) | Private IP of the first control plane node |
+| <a name="output_kubeconfig"></a> [kubeconfig](#output\_kubeconfig) | Admin kubeconfig content for the RKE2 cluster |
+| <a name="output_kubeconfig_command"></a> [kubeconfig\_command](#output\_kubeconfig\_command) | Command to get kubeconfig from first control plane node |
+| <a name="output_private_network_cidr"></a> [private\_network\_cidr](#output\_private\_network\_cidr) | Private network CIDR |
+| <a name="output_private_network_id"></a> [private\_network\_id](#output\_private\_network\_id) | Hetzner Cloud private network ID |
+| <a name="output_rke2_token"></a> [rke2\_token](#output\_rke2\_token) | Generated RKE2 cluster token |
+| <a name="output_ssh_key_name"></a> [ssh\_key\_name](#output\_ssh\_key\_name) | Name of the SSH key in Hetzner Cloud |
+| <a name="output_subnet_id"></a> [subnet\_id](#output\_subnet\_id) | Hetzner Cloud subnet ID |
+| <a name="output_worker_ips"></a> [worker\_ips](#output\_worker\_ips) | Public IP addresses of worker nodes |
 
-## Customization
+## Contributing
 
-### Scaling
+Please read the contribution guidelines before submitting pull requests.
 
-To change the number of nodes, modify these variables:
+## License
 
-```hcl
-nb_cp_additional_servers = 2  # Total control plane: 3 (1 + 2 additional)
-nb_worker_servers        = 3  # Total workers: 3
-```
-
-### Server Types
-
-Change server specifications:
-
-```hcl
-control_plane_server_type = "cx32"  # More powerful control plane servers
-worker_server_type        = "cx32"  # More powerful worker servers
-```
-
-Available server types: `cx22`, `cx32`, `cx42`, `cx52`, etc.
-
-### Locations
-
-Deploy in different regions:
-
-```hcl
-control_plane_location = "fsn1"  # Falkenstein
-worker_location        = "fsn1"  # Falkenstein
-network_zone           = "eu-central"
-```
-
-## Security Considerations
-
-1. **SSH Access**: Restrict `ssh_allowed_ips` to your actual IP addresses
-2. **API Tokens**: Store tokens securely (use environment variables or secret management)
-3. **Firewall**: Review and customize firewall rules as needed
-
-## Troubleshooting
-
-### Common Issues
-
-1. **SSH Access**: Verify your IP is correctly configured in `ssh_allowed_ips`
-2. **Server Provisioning**: Check cloud-init logs if servers fail to start properly
-
-### Logs
-
-Check cloud-init logs on servers:
-
-```bash
-ssh root@<server-ip>
-tail -f /var/log/cloud-init-output.log
-```
-
-### RKE2 Status
-
-Check RKE2 service status:
-
-```bash
-ssh root@<control-plane-ip>
-systemctl status rke2-server
-journalctl -u rke2-server -f
-```
-
-## Cleanup
-
-To destroy all resources:
-
-```bash
-terraform destroy
-```
-
-**Warning**: This will permanently delete all resources.
-
-## Cost Estimation
-
-Approximate monthly costs (as of 2024):
-- Hetzner servers (2x cx22 + 2x cx22): ~€40-50
-- Hetzner Load Balancer: ~€5
-- **Total**: ~€45-55/month
-
-*Note: If using an external datastore, additional costs will apply for the datastore provider.*
-
-## Next Steps
-
-- Configure monitoring with Prometheus/Grafana
-- Set up backup solutions
-- Implement GitOps with ArgoCD
-- Add additional worker nodes for scaling
-- Configure ingress controllers and certificates
+This module is licensed under the MIT License.
+<!-- END_TF_DOCS -->

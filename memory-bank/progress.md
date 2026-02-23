@@ -62,6 +62,11 @@ This file tracks the project's progress using a task list format.
 - [ ] Documentation refinement with inline comments
 
 ### Recently Completed
+- [x] Removed hardcoded api_server_domain (2026-02-23)
+  - Added optional `api_server_domain` variable to `variables.tf`
+  - Updated locals in `servers.tf` to use variable (defaults to empty string)
+  - Removed hardcoded `reddevs.io` domain suffix
+  - Regenerated README.md and examples/basic/README.md
 - [x] Documentation updates for kubeconfig export (2026-02-23)
   - Updated `.terraform-docs.yml` with current architecture
   - Regenerated root README.md with terraform-docs
@@ -106,7 +111,6 @@ No explicit TODO or FIXME comments were found in the source files during analysi
 | Gap | Location | Description |
 |-----|----------|-------------|
 | No tests | N/A | No `.tftest.hcl` files or test directory |
-| Hardcoded domain | `servers.tf:23` | `api_server_domain = "${var.cluster_name}-api-server.reddevs.io"` |
 | SSH disabled by default | `variables.tf:76` | `enable_ssh_access` defaults to `false` |
 | No variable validation | `variables.tf` | Only `ssh_key_algorithm` has validation |
 
@@ -131,4 +135,4 @@ No explicit TODO or FIXME comments were found in the source files during analysi
 
 ---
 
-*Last updated: 2026-02-23 14:09:00 CET*
+*Last updated: 2026-02-23 21:15:00 CET*
