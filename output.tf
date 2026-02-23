@@ -64,9 +64,3 @@ output "ssh_key_name" {
   description = "Name of the SSH key in Hetzner Cloud"
   value       = hcloud_ssh_key.rke2_key.name
 }
-
-output "kubeconfig" {
-  description = "Admin kubeconfig content for the RKE2 cluster. Returns null if enable_ssh_access is false (default) or if kubeconfig hasn't been retrieved yet. IMPORTANT: This value is read at plan time and may be stale after cluster recreation - run 'terraform apply' twice or use kubeconfig_command for the most current kubeconfig."
-  value       = local.kubeconfig_content
-  sensitive   = true
-}

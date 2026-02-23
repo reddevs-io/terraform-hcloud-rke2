@@ -81,7 +81,6 @@ Based on the existing `.tf` files, the following components are implemented:
   - Replaced inline SSH key interpolation with `local_sensitive_file` resource (fixes key leak via shell/process list)
   - Added `null_resource.capture_host_key` to capture server host key for strict verification
   - Changed `scp` to use `StrictHostKeyChecking=yes` with captured known_hosts (fixes MITM vulnerability)
-  - Replaced `data.local_sensitive_file` with `local.kubeconfig_content` using `try()` (fixes plan-time error on fresh deployments)
   - Added `random_id.ssh_key_suffix` for unique temp file names
   - Added `random` provider to main.tf
   - Fixed `kubeconfig_command` output to use `var.kubeconfig_path`
