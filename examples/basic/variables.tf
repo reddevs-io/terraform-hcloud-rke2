@@ -12,8 +12,14 @@ variable "cluster_name" {
 }
 
 # Server Configuration
-variable "server_type" {
-  description = "Hetzner server type"
+variable "control_plane_server_type" {
+  description = "Server type for control plane nodes"
+  type        = string
+  default     = "cx22"
+}
+
+variable "worker_server_type" {
+  description = "Server type for worker nodes"
   type        = string
   default     = "cx22"
 }
@@ -24,8 +30,14 @@ variable "server_image" {
   default     = "ubuntu-24.04"
 }
 
-variable "server_location" {
-  description = "Server location"
+variable "control_plane_location" {
+  description = "Hetzner location for control plane nodes"
+  type        = string
+  default     = "nbg1"
+}
+
+variable "worker_location" {
+  description = "Hetzner location for worker nodes"
   type        = string
   default     = "nbg1"
 }

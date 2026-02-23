@@ -5,9 +5,11 @@ hcloud_token = "your-hetzner-cloud-api-token"
 cluster_name = "my-rke2-cluster"
 
 # Server Configuration
-server_type     = "cx22"
-server_location = "nbg1"
-server_image    = "ubuntu-24.04"
+control_plane_server_type = "cx22"
+worker_server_type        = "cx22"
+control_plane_location    = "nbg1"
+worker_location           = "nbg1"
+server_image              = "ubuntu-24.04"
 
 # Network Configuration
 network_cidr = "10.0.0.0/16"

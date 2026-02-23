@@ -33,9 +33,11 @@ module "rke2_infrastructure" {
   cluster_name = var.cluster_name
 
   # Server Configuration
-  server_type     = var.server_type
-  server_location = var.server_location
-  server_image    = var.server_image
+  control_plane_server_type = var.control_plane_server_type
+  worker_server_type        = var.worker_server_type
+  control_plane_location    = var.control_plane_location
+  worker_location           = var.worker_location
+  server_image              = var.server_image
 
   # Network Configuration
   network_cidr = var.network_cidr

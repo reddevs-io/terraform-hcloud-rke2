@@ -6,7 +6,7 @@ module "rke2_cluster" {
   cluster_name = "no-ssh-cluster"
   
   # Server configuration
-  server_location = "nbg1"
+  control_plane_location = "nbg1"
   
   # Node configuration
   cluster_server_names_cp     = ["cp-1"]
@@ -27,10 +27,6 @@ module "rke2_cluster" {
   ssh_allowed_ips   = [] # Not used when SSH is disabled
   
   # Required variables (would be provided via terraform.tfvars)
-  hcloud_token           = var.hcloud_token
-  rke2_token            = var.rke2_token
-  external_datastore_url = var.external_datastore_url
-  aws_region            = var.aws_region
-  db_username           = var.db_username
-  allowed_cidr          = var.allowed_cidr
+  hcloud_token = var.hcloud_token
+  rke2_token   = var.rke2_token
 }

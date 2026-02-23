@@ -27,8 +27,8 @@ locals {
 resource "hcloud_server" "control_plane_first" {
   name               = "${var.cluster_name}-control-${var.cluster_server_names_cp[0]}"
   image              = var.server_image
-  server_type        = var.server_type
-  location           = var.server_location
+  server_type        = var.control_plane_server_type
+  location           = var.control_plane_location
   ssh_keys           = [hcloud_ssh_key.rke2_key.id]
   firewall_ids       = [hcloud_firewall.control_plane.id]
   placement_group_id = hcloud_placement_group.cp_placement_group.id
@@ -71,8 +71,8 @@ resource "hcloud_server" "control_plane_additional" {
   count              = var.nb_cp_additional_servers
   name               = "${var.cluster_name}-control-${var.cluster_server_names_cp[count.index + 1]}"
   image              = var.server_image
-  server_type        = var.server_type
-  location           = var.server_location
+  server_type        = var.control_plane_server_type
+  location           = var.control_plane_location
   ssh_keys           = [hcloud_ssh_key.rke2_key.id]
   firewall_ids       = [hcloud_firewall.control_plane.id]
   placement_group_id = hcloud_placement_group.cp_placement_group.id
@@ -116,8 +116,8 @@ resource "hcloud_server" "workers" {
   count              = var.nb_worker_servers
   name               = "${var.cluster_name}-worker-${var.cluster_server_names_worker[count.index]}"
   image              = var.server_image
-  server_type        = var.server_type
-  location           = var.server_location
+  server_type        = var.worker_server_type
+  location           = var.worker_location
   ssh_keys           = [hcloud_ssh_key.rke2_key.id]
   firewall_ids       = [hcloud_firewall.worker.id]
   placement_group_id = hcloud_placement_group.worker_placement_group.id
