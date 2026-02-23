@@ -92,38 +92,11 @@ variable "nb_worker_servers" {
   type        = number
 }
 
-variable "external_datastore_url" {
+variable "datastore_endpoint" {
+  description = "External datastore endpoint URL for RKE2 (e.g. postgres://user:password@host:5432/dbname). If not set, RKE2 will use the embedded etcd."
   type        = string
-  description = "External datastore for k8s control-plane"
+  default     = null
   sensitive   = true
-}
-
-# AWS RDS RKE2 datastore variables
-variable "aws_region" {
-  type        = string
-  description = "AWS region for RDS instance"
-}
-
-variable "db_username" {
-  type        = string
-  description = "Database username for RDS instance"
-}
-
-variable "allowed_cidr" {
-  description = "CIDR allowed to connect to Postgres (use your IP/CIDR, not 0.0.0.0/0, for security)."
-  type        = list(string)
-}
-
-variable "allocated_storage_gb" {
-  type        = number
-  default     = 20
-  description = "Keep at or below 20GB for Free Tier."
-}
-
-variable "engine_version" {
-  type        = string
-  default     = "17.6"
-  description = "PostgreSQL engine version"
 }
 
 variable "ssh_key_algorithm" {
@@ -134,34 +107,4 @@ variable "ssh_key_algorithm" {
     condition     = contains(["RSA", "ED25519", "ECDSA"], var.ssh_key_algorithm)
     error_message = "SSH key algorithm must be one of: RSA, ED25519, ECDSA."
   }
-}
-
-# AWS VPC module variables
-variable "vpc_name" {
-  description = "Name for the VPC"
-  type        = string
-}
-
-variable "vpc_cidr" {
-  description = "CIDR block for the VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "private_subnets" {
-  description = "List of private subnet CIDR blocks"
-  type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-}
-
-variable "public_subnets" {
-  description = "List of public subnet CIDR blocks"
-  type        = list(string)
-  default     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
-}
-
-variable "enable_nat_gateway" {
-  description = "Enable NAT Gateway for private subnets"
-  type        = bool
-  default     = false
 }

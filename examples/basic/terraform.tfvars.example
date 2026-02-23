@@ -1,8 +1,5 @@
 # Copy this file to terraform.tfvars and fill in your actual values
 
-# AWS Configuration
-aws_region = "eu-central-1"
-
 # Hetzner Cloud Configuration
 hcloud_token = "your-hetzner-cloud-api-token"
 cluster_name = "my-rke2-cluster"
@@ -26,11 +23,5 @@ ssh_allowed_ips = [
 nb_cp_additional_servers = 1  # Total control plane nodes will be 2 (1 + 1 additional)
 nb_worker_servers        = 2
 
-# AWS RDS Configuration
-external_datastore_url = "postgres://username:password@your-rds-endpoint:5432/database"
-db_username           = "postgres"
-allowed_cidr = [
-  "10.0.0.0/16"  # Allow access from Hetzner private network
-]
-allocated_storage_gb = 20
-engine_version      = "17.6"
+# External Datastore Configuration (optional - uses embedded etcd if not provided)
+# datastore_endpoint = "postgres://user:password@host:5432/dbname"

@@ -7,7 +7,7 @@ This example demonstrates how to provision the infrastructure for an RKE2 Kubern
 This example creates the infrastructure foundation:
 - 2 control plane nodes (1 initial + 1 additional) with RKE2 server
 - 2 worker nodes with RKE2 agent
-- AWS RDS PostgreSQL as external datastore
+- Embedded etcd by default (optional external datastore support)
 - Hetzner Cloud Load Balancer for API server
 - Private network with firewall rules
 - **Note**: Kubernetes applications (cert-manager, external-dns, Rancher) are deployed separately
@@ -15,8 +15,7 @@ This example creates the infrastructure foundation:
 ## Prerequisites
 
 1. **Hetzner Cloud Account**: Create an account and generate an API token
-2. **AWS Account**: For RDS PostgreSQL instance
-3. **Terraform**: Version >= 1.2.0
+2. **Terraform**: Version >= 1.2.0
 
 ## Setup Instructions
 
@@ -41,9 +40,6 @@ Edit `terraform.tfvars` with your actual values:
 # Required: Hetzner Cloud API token
 hcloud_token = "your-hetzner-cloud-api-token"
 
-# Required: AWS RDS connection string
-external_datastore_url = "postgres://username:password@your-rds-endpoint:5432/database"
-
 # Security: Replace with your actual IP
 ssh_allowed_ips = ["YOUR.IP.ADDRESS.HERE/32"]
 
@@ -52,6 +48,9 @@ cluster_name = "my-rke2-cluster"
 server_type = "cx22"
 nb_cp_additional_servers = 1
 nb_worker_servers = 2
+
+# Optional: External datastore (uses embedded etcd if not provided)
+# datastore_endpoint = "postgres://user:password@host:5432/dbname"
 ```
 
 ### 3. Initialize and Plan
@@ -95,9 +94,7 @@ kubectl get nodes
 | `private_network_cidr` | Private network CIDR |
 | `private_network_id` | Hetzner Cloud private network ID |
 | `subnet_id` | Hetzner Cloud subnet ID |
-| `rds_endpoint` | RDS instance endpoint |
-| `rds_port` | RDS instance port |
-| `rds_database_name` | RDS database name |
+| `ssh_key_name` | Name of the SSH key in Hetzner Cloud |
 | `rke2_token` | Generated RKE2 cluster token (sensitive) |
 
 ## Customization
@@ -133,17 +130,15 @@ network_zone    = "eu-central"
 ## Security Considerations
 
 1. **SSH Access**: Restrict `ssh_allowed_ips` to your actual IP addresses
-2. **RDS Access**: Configure `allowed_cidr` appropriately
-3. **API Tokens**: Store tokens securely (use environment variables or secret management)
-4. **Firewall**: Review and customize firewall rules as needed
+2. **API Tokens**: Store tokens securely (use environment variables or secret management)
+3. **Firewall**: Review and customize firewall rules as needed
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **RDS Connection**: Ensure the RDS instance is accessible from Hetzner Cloud
-2. **SSH Access**: Verify your IP is correctly configured in `ssh_allowed_ips`
-3. **Server Provisioning**: Check cloud-init logs if servers fail to start properly
+1. **SSH Access**: Verify your IP is correctly configured in `ssh_allowed_ips`
+2. **Server Provisioning**: Check cloud-init logs if servers fail to start properly
 
 ### Logs
 
@@ -172,15 +167,16 @@ To destroy all resources:
 terraform destroy
 ```
 
-**Warning**: This will permanently delete all resources including the RDS database.
+**Warning**: This will permanently delete all resources.
 
 ## Cost Estimation
 
 Approximate monthly costs (as of 2024):
 - Hetzner servers (2x cx22 + 2x cx22): ~€40-50
 - Hetzner Load Balancer: ~€5
-- AWS RDS (db.t3.micro): ~$15-20 (Free Tier eligible)
-- **Total**: ~€50-70/month
+- **Total**: ~€45-55/month
+
+*Note: If using an external datastore, additional costs will apply for the datastore provider.*
 
 ## Next Steps
 

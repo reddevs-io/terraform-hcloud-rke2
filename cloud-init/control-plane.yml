@@ -35,7 +35,9 @@ runcmd:
     node-taint:
       - "CriticalAddonsOnly=true:NoExecute"
     write-kubeconfig-mode: "0644"
-    datastore-endpoint: ${external_datastore_url}
+    %{ if datastore_endpoint != null }
+    datastore-endpoint: ${datastore_endpoint}
+    %{ endif }
     cloud-provider-name: external
     kubelet-arg:
       - "cloud-provider=external"

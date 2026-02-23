@@ -39,21 +39,6 @@ output "private_network_cidr" {
   value       = hcloud_network.rke2_network.ip_range
 }
 
-output "rds_endpoint" {
-  description = "RDS instance endpoint"
-  value       = aws_db_instance.datastore.endpoint
-}
-
-output "rds_port" {
-  description = "RDS instance port"
-  value       = aws_db_instance.datastore.port
-}
-
-output "rds_database_name" {
-  description = "RDS database name"
-  value       = aws_db_instance.datastore.db_name
-}
-
 output "private_network_id" {
   description = "Hetzner Cloud private network ID"
   value       = hcloud_network.rke2_network.id

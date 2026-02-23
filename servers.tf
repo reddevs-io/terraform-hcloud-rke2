@@ -39,14 +39,14 @@ resource "hcloud_server" "control_plane_first" {
   }
 
   user_data = templatefile("${path.module}/cloud-init/control-plane.yml", {
-    node_name              = "${var.cluster_name}-control-${var.cluster_server_names_cp[0]}"
-    is_first_node          = true
-    cluster_token          = var.rke2_token
-    lb_public_ip           = hcloud_load_balancer.api_server.ipv4
-    lb_private_ip          = hcloud_load_balancer_network.api_server.ip
-    api_domain             = local.api_server_domain
-    node_private_ip        = var.private_ips_cp[0]
-    external_datastore_url = var.external_datastore_url
+    node_name          = "${var.cluster_name}-control-${var.cluster_server_names_cp[0]}"
+    is_first_node      = true
+    cluster_token      = var.rke2_token
+    lb_public_ip       = hcloud_load_balancer.api_server.ipv4
+    lb_private_ip      = hcloud_load_balancer_network.api_server.ip
+    api_domain         = local.api_server_domain
+    node_private_ip    = var.private_ips_cp[0]
+    datastore_endpoint = var.datastore_endpoint
   })
 
   labels = {
@@ -83,14 +83,14 @@ resource "hcloud_server" "control_plane_additional" {
   }
 
   user_data = templatefile("${path.module}/cloud-init/control-plane.yml", {
-    node_name              = "${var.cluster_name}-control-${var.cluster_server_names_cp[count.index + 1]}"
-    is_first_node          = false
-    cluster_token          = var.rke2_token
-    lb_public_ip           = hcloud_load_balancer.api_server.ipv4
-    lb_private_ip          = hcloud_load_balancer_network.api_server.ip
-    api_domain             = local.api_server_domain
-    node_private_ip        = var.private_ips_cp[count.index + 1]
-    external_datastore_url = var.external_datastore_url
+    node_name          = "${var.cluster_name}-control-${var.cluster_server_names_cp[count.index + 1]}"
+    is_first_node      = false
+    cluster_token      = var.rke2_token
+    lb_public_ip       = hcloud_load_balancer.api_server.ipv4
+    lb_private_ip      = hcloud_load_balancer_network.api_server.ip
+    api_domain         = local.api_server_domain
+    node_private_ip    = var.private_ips_cp[count.index + 1]
+    datastore_endpoint = var.datastore_endpoint
   })
 
   depends_on = [

@@ -2,10 +2,6 @@ terraform {
   required_version = ">= 1.2.0"
 
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "6.11.0"
-    }
     hcloud = {
       source  = "hetznercloud/hcloud"
       version = "~> 1.45"
@@ -18,10 +14,6 @@ terraform {
 }
 
 # Configure providers
-provider "aws" {
-  region = var.aws_region
-}
-
 provider "hcloud" {
   token = var.hcloud_token
 }
@@ -60,11 +52,6 @@ module "rke2_infrastructure" {
   # RKE2 Configuration
   rke2_token = random_password.rke2_token.result
 
-  # AWS RDS Configuration
-  aws_region             = var.aws_region
-  external_datastore_url = var.external_datastore_url
-  db_username            = var.db_username
-  allowed_cidr           = var.allowed_cidr
-  allocated_storage_gb   = var.allocated_storage_gb
-  engine_version         = var.engine_version
+  # Datastore Configuration (optional - uses embedded etcd if not provided)
+  # datastore_endpoint = var.datastore_endpoint
 }

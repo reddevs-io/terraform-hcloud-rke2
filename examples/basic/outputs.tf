@@ -38,21 +38,6 @@ output "subnet_id" {
   value       = module.rke2_infrastructure.subnet_id
 }
 
-output "rds_endpoint" {
-  description = "RDS instance endpoint"
-  value       = module.rke2_infrastructure.rds_endpoint
-}
-
-output "rds_port" {
-  description = "RDS instance port"
-  value       = module.rke2_infrastructure.rds_port
-}
-
-output "rds_database_name" {
-  description = "RDS database name"
-  value       = module.rke2_infrastructure.rds_database_name
-}
-
 output "rke2_token" {
   description = "Generated RKE2 cluster token"
   value       = random_password.rke2_token.result
