@@ -43,12 +43,6 @@ output "ssh_key_name" {
   value       = module.rke2_infrastructure.ssh_key_name
 }
 
-output "kubeconfig" {
-  description = "Admin kubeconfig content for the RKE2 cluster"
-  value       = module.rke2_infrastructure.kubeconfig
-  sensitive   = true
-}
-
 output "rke2_token" {
   description = "Generated RKE2 cluster token"
   value       = random_password.rke2_token.result

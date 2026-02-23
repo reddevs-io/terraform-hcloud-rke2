@@ -94,7 +94,7 @@ variable "ssh_public_key_path" {
 }
 
 variable "ssh_private_key_path" {
-  description = "Path to the SSH private key file corresponding to the public key. Required when enable_ssh_access is true for kubeconfig retrieval."
+  description = "Path to the SSH private key file corresponding to the public key."
   type        = string
   default     = null
 }

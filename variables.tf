@@ -123,24 +123,13 @@ variable "ssh_public_key_path" {
 }
 
 variable "ssh_private_key_path" {
-  description = "Path to the SSH private key file corresponding to the public key. Required when enable_ssh_access is true for kubeconfig retrieval. Must be an absolute path or relative path (tilde ~ is not supported)."
+  description = "Path to the SSH private key file corresponding to the public key. Must be an absolute path or relative path (tilde ~ is not supported)."
   type        = string
   default     = null
 
   validation {
     condition     = var.ssh_private_key_path == null || !startswith(var.ssh_private_key_path, "~")
     error_message = "The ssh_private_key_path cannot start with ~. Use absolute paths (e.g., /home/user/.ssh/id_ed25519) or relative paths (e.g., ./id_ed25519)."
-  }
-}
-
-variable "kubeconfig_path" {
-  description = "Local path where the kubeconfig file will be copied. Must be an absolute path or relative path (tilde ~ is not supported)."
-  type        = string
-  default     = "./kubeconfig.yaml"
-
-  validation {
-    condition     = !startswith(var.kubeconfig_path, "~")
-    error_message = "The kubeconfig_path cannot start with ~. Use absolute paths (e.g., /home/user/kubeconfig.yaml) or relative paths (e.g., ./kubeconfig.yaml)."
   }
 }
 

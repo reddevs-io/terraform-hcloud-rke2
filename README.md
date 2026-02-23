@@ -10,7 +10,6 @@ This Terraform module provisions the infrastructure foundation for an RKE2 Kuber
 - **Security**: Firewall rules, private networking, and secure access controls
 - **Infrastructure Focus**: Provisions servers, networking - applications deployed separately
 - **Cloud-Init**: Automated node provisioning and RKE2 installation
-- **Kubeconfig Export**: Automatic kubeconfig retrieval after cluster provisioning
 - **Optional External Datastore**: Support for external PostgreSQL-compatible datastore if needed
 
 ## Architecture
@@ -54,16 +53,18 @@ module "rke2_cluster" {
 }
 ```
 
-## Kubeconfig Export
+## Retrieving Kubeconfig
 
-After successful deployment, the module automatically retrieves the admin kubeconfig from the first control plane node:
-
-- The kubeconfig is saved to the path specified by `kubeconfig_path` (default: `./kubeconfig.yaml`)
-- The `kubeconfig` output contains the kubeconfig content (sensitive value)
-- The `kubeconfig_command` output shows the manual command to retrieve kubeconfig if needed
+After successful deployment, retrieve the admin kubeconfig from the first control plane node using the command from the `kubeconfig_command` output:
 
 ```bash
-# Use the exported kubeconfig
+# Use the command from kubeconfig_command output
+scp root@<control-plane-ip>:/etc/rancher/rke2/rke2.yaml ./kubeconfig.yaml
+
+# Or with SSH key
+scp -i <path-to-ssh-key> root@<control-plane-ip>:/etc/rancher/rke2/rke2.yaml ./kubeconfig.yaml
+
+# Use the kubeconfig
 export KUBECONFIG=./kubeconfig.yaml
 kubectl get nodes
 ```

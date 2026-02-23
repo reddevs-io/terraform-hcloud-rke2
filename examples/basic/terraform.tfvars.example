@@ -22,7 +22,7 @@ network_zone = "eu-central"
 # Example: ssh_public_key_path = "/home/youruser/.ssh/id_ed25519.pub"
 ssh_public_key_path = "/home/youruser/.ssh/id_ed25519.pub"
 
-# Path to your SSH private key (required if enable_ssh_access = true for kubeconfig retrieval)
+# Path to your SSH private key (optional, for manual kubeconfig retrieval)
 # IMPORTANT: Use absolute paths - tilde (~) is NOT supported by Terraform's file() function
 # ssh_private_key_path = "/home/youruser/.ssh/id_ed25519"
 
@@ -31,7 +31,7 @@ ssh_allowed_ips = [
   "YOUR.IP.ADDRESS.HERE/32"
 ]
 
-# Enable SSH access for kubeconfig retrieval (set to true and provide private key path to enable)
+# Enable SSH access (set to true to allow SSH access to nodes)
 enable_ssh_access = false
 
 # Cluster Configuration

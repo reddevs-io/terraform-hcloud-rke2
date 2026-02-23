@@ -26,7 +26,7 @@ output "worker_ips" {
 
 output "kubeconfig_command" {
   description = "Command to get kubeconfig from first control plane node"
-  value       = var.ssh_private_key_path != null ? "scp -i ${var.ssh_private_key_path} root@${hcloud_server.control_plane_first.ipv4_address}:/etc/rancher/rke2/rke2.yaml ${var.kubeconfig_path}" : "scp root@${hcloud_server.control_plane_first.ipv4_address}:/etc/rancher/rke2/rke2.yaml ${var.kubeconfig_path}"
+  value       = var.ssh_private_key_path != null ? "scp -i ${var.ssh_private_key_path} root@${hcloud_server.control_plane_first.ipv4_address}:/etc/rancher/rke2/rke2.yaml ./kubeconfig.yaml" : "scp root@${hcloud_server.control_plane_first.ipv4_address}:/etc/rancher/rke2/rke2.yaml ./kubeconfig.yaml"
 }
 
 output "first_control_plane_private_ip" {
@@ -52,15 +52,4 @@ output "subnet_id" {
 output "ssh_key_name" {
   description = "Name of the SSH key in Hetzner Cloud"
   value       = hcloud_ssh_key.rke2_key.name
-}
-
-output "kubeconfig" {
-  description = "Admin kubeconfig content for the RKE2 cluster (only available when enable_ssh_access and ssh_private_key_path are set)"
-  value       = local.kubeconfig_content
-  sensitive   = true
-}
-
-output "kubeconfig_available" {
-  description = "Whether the kubeconfig was successfully retrieved. If false, use the kubeconfig_command output to manually retrieve it."
-  value       = local.kubeconfig_content != null
 }
