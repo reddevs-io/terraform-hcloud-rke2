@@ -64,6 +64,12 @@ variable "ssh_allowed_ips" {
   ]
 }
 
+variable "enable_ssh_access" {
+  description = "Enable SSH access rules in firewall (port 22)"
+  type        = bool
+  default     = false
+}
+
 # Cluster Configuration
 variable "nb_cp_additional_servers" {
   description = "Number of additional control-plane nodes in the RKE2 cluster"

@@ -16,11 +16,14 @@ resource "hcloud_firewall" "control_plane" {
   name = "${var.cluster_name}-control-plane-fw"
 
   # SSH access
-  rule {
-    direction  = "in"
-    port       = "22"
-    protocol   = "tcp"
-    source_ips = var.ssh_allowed_ips
+  dynamic "rule" {
+    for_each = var.enable_ssh_access ? [1] : []
+    content {
+      direction  = "in"
+      port       = "22"
+      protocol   = "tcp"
+      source_ips = var.ssh_allowed_ips
+    }
   }
 
   # Kubernetes API server (6443) - All RKE2 nodes + external access
@@ -161,11 +164,14 @@ resource "hcloud_firewall" "worker" {
   name = "${var.cluster_name}-worker-fw"
 
   # SSH access
-  rule {
-    direction  = "in"
-    port       = "22"
-    protocol   = "tcp"
-    source_ips = var.ssh_allowed_ips
+  dynamic "rule" {
+    for_each = var.enable_ssh_access ? [1] : []
+    content {
+      direction  = "in"
+      port       = "22"
+      protocol   = "tcp"
+      source_ips = var.ssh_allowed_ips
+    }
   }
 
   # kubelet metrics (10250) - All RKE2 nodes to all RKE2 nodes
