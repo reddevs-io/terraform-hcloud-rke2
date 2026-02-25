@@ -10,7 +10,7 @@ packages:
 runcmd:
   - mkdir -p /etc/rancher/rke2/
   - mkdir -p /var/lib/rancher/rke2/server/manifests/
-  - curl -sfL https://get.rke2.io | sh -
+  - curl -sfL https://get.rke2.io | INSTALL_RKE2_CHANNEL="${install_rke2_channel}" sh -
   # Wait for metadata service to be available and fetch instance ID
   - |
     while ! curl -s http://169.254.169.254/hetzner/v1/metadata/instance-id > /dev/null; do

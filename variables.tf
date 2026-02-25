@@ -138,3 +138,9 @@ variable "api_server_domain" {
   type        = string
   default     = null
 }
+
+variable "rke2_channel" {
+  description = "The RKE2 channel to use for installation (e.g. stable, latest, v1.28)"
+  type        = string
+  default     = "stable"
+}
