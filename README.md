@@ -15,6 +15,7 @@ This Terraform module provisions the infrastructure foundation for an RKE2 Kuber
 ## Architecture
 
 The module creates the infrastructure foundation:
+
 - Hetzner Cloud private network and subnet
 - Control plane nodes (configurable count) with RKE2 server
 - Worker nodes (configurable count) with RKE2 agent
@@ -26,30 +27,40 @@ The module creates the infrastructure foundation:
 ## Usage
 
 ```hcl
-module "rke2_cluster" {
-  source = "github.com/FranMako/terraform-hetzner-rke2"
+module "rke2_infrastructure" {
+  source = "git::https://github.com/reddevs-io/terraform-hcloud-rke2"
 
+  # Hetzner Cloud Configuration
   hcloud_token = var.hcloud_token
-  rke2_token   = var.rke2_token
+  cluster_name = "umoja"
 
-  cluster_name = "my-rke2-cluster"
+  ssh_private_key_path = "/home/ubuntu/.ssh/id_ed25519"
+  ssh_public_key_path  = "/home/ubuntu/.ssh/id_ed25519.pub"
 
-  # Control plane configuration
-  cluster_server_names_cp   = ["cp-1", "cp-2", "cp-3"]
-  private_ips_cp            = ["10.0.1.1", "10.0.1.2", "10.0.1.3"]
-  nb_cp_additional_servers  = 2
-
-  # Worker configuration
-  cluster_server_names_worker = ["worker-1", "worker-2"]
-  private_ips_workers         = ["10.0.1.11", "10.0.1.12"]
-  nb_worker_servers           = 2
+  # Server Configuration
+  control_plane_server_type   = "cx23"
+  worker_server_type          = "cx43"
+  control_plane_location      = "nbg1"
   worker_location             = "nbg1"
+  nb_worker_servers           = 3
+  cluster_server_names_cp     = ["cp-1", "cp-2", "cp-3"]
+  cluster_server_names_worker = ["worker-1", "worker-2", "worker-3"]
+  nb_cp_additional_servers    = 2
+  enable_ssh_access           = true
+  ssh_allowed_ips             = ["<my-public-ip-adddress>/32"]
+  private_ips_cp              = ["10.0.1.2", "10.0.1.3", "10.0.1.4"]
+  private_ips_workers         = ["10.0.1.5", "10.0.1.6", "10.0.1.7"]
+  api_server_domain           = "my-api-server.example.com"
 
-  # SSH access (disabled by default)
-  ssh_allowed_ips = ["0.0.0.0/0"]
+  # Network Configuration
+  network_cidr = "10.0.0.0/16"
+  subnet_cidr  = "10.0.1.0/24"
+
+  # RKE2 Configuration
+  rke2_token = "this_is_random_token"
 
   # Optional: External datastore (uses embedded etcd if not provided)
-  # datastore_endpoint = "postgres://user:password@host:5432/dbname"
+  datastore_endpoint = "postgresql://rke2:password@my-postgres-db/rke2"
 }
 ```
 
