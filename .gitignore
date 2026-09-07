@@ -99,3 +99,7 @@ tests/
 # Ignore temporary SSH key and known_hosts files created by kubeconfig export
 .tmp_ssh_key_*
 .known_hosts_*
+
+# Scanner outputs produced in CI (tfsec, checkov, trivy)
+*.sarif
+checkov-results.sarif/
