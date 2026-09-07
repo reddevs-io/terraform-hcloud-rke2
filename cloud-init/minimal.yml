@@ -1,0 +1,14 @@
+#cloud-config
+# Minimal bootstrap for control plane nodes with bootstrap = "external".
+# RKE2 is NOT installed here; an external tool (for example Ansible) performs
+# the join so that node-local customisations (datastore shims, kubelet args,
+# version pinning) are managed in one place.
+hostname: ${node_name}
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - wget
+  - unzip
+  - python3

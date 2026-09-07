@@ -1,20 +1,11 @@
 terraform {
   required_providers {
     hcloud = {
-      source  = "hetznercloud/hcloud"
-      version = "1.52.0"
-    }
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.5"
-    }
-    null = {
-      source  = "hashicorp/null"
-      version = "~> 3.2"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.1"
+      source = "hetznercloud/hcloud"
+      # 1.67+ is required: Hetzner removed the `datacenter` attribute from the
+      # API on 2026-07-01 and older providers read `location` back as null,
+      # which forces a replacement of every server on the next plan.
+      version = "~> 1.68"
     }
   }
 

@@ -10,14 +10,12 @@ module "rke2_cluster" {
   worker_location        = "nbg1"
 
   # Node configuration
-  cluster_server_names_cp     = ["cp-1"]
-  private_ips_cp              = ["10.0.1.10"]
-  cluster_server_names_worker = ["worker-1", "worker-2"]
+  control_planes = {
+    "1" = { private_ip = "10.0.1.10", first = true }
+  }
+  cluster_server_names_worker = ["1", "2"]
   private_ips_workers         = ["10.0.1.20", "10.0.1.21"]
-
-  # Cluster sizing
-  nb_cp_additional_servers = 0
-  nb_worker_servers        = 2
+  nb_worker_servers           = 2
 
   # Network configuration
   network_cidr = "10.0.0.0/16"

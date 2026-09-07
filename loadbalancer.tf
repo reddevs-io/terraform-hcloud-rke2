@@ -1,8 +1,12 @@
+locals {
+  api_lb_location = coalesce(var.api_lb_location, var.control_plane_location)
+}
+
 # Load Balancer for Kubernetes API
 resource "hcloud_load_balancer" "api_server" {
   name               = "${var.cluster_name}-api-lb"
   load_balancer_type = "lb11"
-  location           = var.control_plane_location
+  location           = local.api_lb_location
 }
 
 resource "hcloud_load_balancer_network" "api_server" {
@@ -40,29 +44,19 @@ resource "hcloud_load_balancer_service" "rke_supervisor_api" {
   }
 }
 
-# Update Load Balancer targets to include all control plane nodes
-resource "hcloud_load_balancer_target" "api_server_first" {
+# Every control plane node is a load balancer target. Targets that are not yet
+# running RKE2 simply fail the health check and receive no traffic.
+resource "hcloud_load_balancer_target" "control_plane" {
+  for_each = local.control_planes
+
   type             = "server"
   load_balancer_id = hcloud_load_balancer.api_server.id
-  server_id        = hcloud_server.control_plane_first.id
+  server_id        = hcloud_server.control_plane[each.key].id
   use_private_ip   = true
 
   depends_on = [
     hcloud_load_balancer_service.api_server,
-    hcloud_server_network.control_plane_first_network
+    hcloud_load_balancer_service.rke_supervisor_api,
+    hcloud_server_network.control_plane
   ]
 }
-
-resource "hcloud_load_balancer_target" "api_server_additional" {
-  count            = var.nb_cp_additional_servers
-  type             = "server"
-  load_balancer_id = hcloud_load_balancer.api_server.id
-  server_id        = hcloud_server.control_plane_additional[count.index].id
-  use_private_ip   = true
-
-  depends_on = [
-    hcloud_load_balancer_service.api_server,
-    hcloud_server_network.control_plane_additional_network
-  ]
-}
-

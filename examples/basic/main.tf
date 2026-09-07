@@ -1,10 +1,10 @@
 terraform {
-  required_version = ">= 1.2.0"
+  required_version = ">= 1.8.0"
 
   required_providers {
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = "~> 1.52"
+      version = "~> 1.68"
     }
     random = {
       source  = "hashicorp/random"
@@ -24,18 +24,22 @@ resource "random_password" "rke2_token" {
   special = true
 }
 
-# Generate control plane server names based on number of additional control plane nodes
+# Derive node names and private IPs from the requested counts
 locals {
-  cp_count     = 1 + var.nb_cp_additional_servers
   worker_count = var.nb_worker_servers
 
-  control_plane_names = [for i in range(local.cp_count) : "${var.cluster_name}-cp-${i == 0 ? "primary" : i}"]
-  worker_names        = [for i in range(local.worker_count) : "${var.cluster_name}-worker-${i}"]
+  # Control planes keyed by short name; the first one initialises the cluster.
+  # Private IPs start at .10, workers follow after the control planes.
+  control_planes = {
+    for i in range(1 + var.nb_cp_additional_servers) :
+    (i == 0 ? "primary" : tostring(i)) => {
+      private_ip = cidrhost(var.subnet_cidr, 10 + i)
+      first      = i == 0
+    }
+  }
 
-  # Generate private IPs for control plane nodes (starting from .10)
-  control_plane_ips = [for i in range(local.cp_count) : cidrhost(var.subnet_cidr, 10 + i)]
-  # Generate private IPs for worker nodes (starting after control plane)
-  worker_ips = [for i in range(local.worker_count) : cidrhost(var.subnet_cidr, 10 + local.cp_count + i)]
+  worker_names = [for i in range(local.worker_count) : "${i}"]
+  worker_ips   = [for i in range(local.worker_count) : cidrhost(var.subnet_cidr, 10 + length(local.control_planes) + i)]
 }
 
 # Create the RKE2 infrastructure using the module
@@ -64,17 +68,13 @@ module "rke2_infrastructure" {
   ssh_public_key_path  = var.ssh_public_key_path
   ssh_private_key_path = var.ssh_private_key_path
 
-  # Cluster Configuration - Server Names
-  cluster_server_names_cp     = local.control_plane_names
+  # Control planes (per-node type/location override the defaults above)
+  control_planes = local.control_planes
+
+  # Workers
   cluster_server_names_worker = local.worker_names
-
-  # Cluster Configuration - Private IPs
-  private_ips_cp      = local.control_plane_ips
-  private_ips_workers = local.worker_ips
-
-  # Cluster Configuration - Node Counts
-  nb_cp_additional_servers = var.nb_cp_additional_servers
-  nb_worker_servers        = var.nb_worker_servers
+  private_ips_workers         = local.worker_ips
+  nb_worker_servers           = var.nb_worker_servers
 
   # RKE2 Configuration
   rke2_token = random_password.rke2_token.result
