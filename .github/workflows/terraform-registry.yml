@@ -42,6 +42,16 @@ jobs:
       - name: OpenTofu Validate
         run: tofu validate
 
+      - name: Check README is up to date (terraform-docs)
+        # Runs before the scanners: tfsec/checkov drop files into the workspace
+        # and this action fails on any uncommitted change.
+        uses: terraform-docs/gh-actions@v1.4.1
+        with:
+          working-dir: .
+          config-file: .terraform-docs.yml
+          git-push: false
+          fail-on-diff: true
+
       - name: Setup tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
@@ -70,19 +80,6 @@ jobs:
         if: always()
         with:
           sarif_file: checkov-results.sarif
-
-      - name: Show workspace changes before the docs check
-        run: |
-          git status --porcelain
-          git status --porcelain --ignored | grep '^!!' || true
-
-      - name: Setup terraform-docs
-        uses: terraform-docs/gh-actions@v1.4.1
-        with:
-          working-dir: .
-          config-file: .terraform-docs.yml
-          git-push: false
-          fail-on-diff: true
 
       - name: Validate examples
         run: |

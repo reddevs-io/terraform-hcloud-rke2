@@ -103,3 +103,8 @@ tests/
 # Scanner outputs produced in CI (tfsec, checkov, trivy)
 *.sarif
 checkov-results.sarif/
+
+# Files dropped into the workspace by CI scanner actions
+tfsec-linux-*
+tfsec-checksums.txt
+checkov-problem-matcher*.json
