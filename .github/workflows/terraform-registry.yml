@@ -1,5 +1,10 @@
 name: OpenTofu Registry Release
 
+# SARIF uploads need security-events, the release step needs contents.
+permissions:
+  contents: write
+  security-events: write
+
 on:
   push:
     tags:
@@ -67,7 +72,7 @@ jobs:
           sarif_file: checkov-results.sarif
 
       - name: Setup terraform-docs
-        uses: terraform-docs/gh-actions@v1.0.0
+        uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: .
           output-file: README.md
@@ -143,8 +148,8 @@ jobs:
           echo "" >> CHANGELOG.md
           echo "### Module Information" >> CHANGELOG.md
           echo "- **OpenTofu Version**: >= 1.8.0" >> CHANGELOG.md
-          echo "- **Providers**: AWS, Hetzner Cloud, Kubernetes, Helm" >> CHANGELOG.md
-          echo "- **Purpose**: RKE2 Kubernetes cluster on Hetzner Cloud with AWS RDS datastore" >> CHANGELOG.md
+          echo "- **Providers**: Hetzner Cloud (hcloud ~> 1.68)" >> CHANGELOG.md
+          echo "- **Purpose**: Infrastructure for an RKE2 Kubernetes cluster on Hetzner Cloud" >> CHANGELOG.md
 
       - name: Create Release
         uses: actions/create-release@v1
