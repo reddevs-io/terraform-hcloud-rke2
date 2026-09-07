@@ -20,9 +20,13 @@ locals {
 
   # Node that initialises the cluster. Falls back to the first key in sorted
   # order when no entry sets `first = true` (only matters for outputs).
-  first_control_plane_key = try(
-    one([for k, v in var.control_planes : k if v.first]),
-    sort(keys(var.control_planes))[0],
+  # Note: one([]) returns null rather than erroring, so try() cannot be used
+  # for the fallback.
+  first_control_plane_keys = [for k, v in var.control_planes : k if v.first]
+  first_control_plane_key = (
+    length(local.first_control_plane_keys) > 0
+    ? local.first_control_plane_keys[0]
+    : sort(keys(var.control_planes))[0]
   )
 
   control_planes = {
