@@ -177,7 +177,8 @@ variable "ssh_private_key_path" {
   default     = null
 
   validation {
-    condition     = var.ssh_private_key_path == null || !startswith(var.ssh_private_key_path, "~")
+    # Ternary instead of ||: HCL operators are not short-circuit, so startswith(null, ...) would error.
+    condition     = var.ssh_private_key_path == null ? true : !startswith(var.ssh_private_key_path, "~")
     error_message = "The ssh_private_key_path cannot start with ~. Use absolute paths (e.g., /home/user/.ssh/id_ed25519) or relative paths (e.g., ./id_ed25519)."
   }
 }
